@@ -738,3 +738,29 @@ SUMMARY
 MinionMint is now defined as a platform for minting bounded AI workers, not a generic chatbot builder. The first product experience is onboarding that creates a Minion Blueprint. That blueprint becomes the foundation for the future agent, knowledge, memory, approval, channel, computer-use, and operations-board platform.
 
 The product should keep the user focused on a narrow first worker, a clear business outcome, approved knowledge, memory rules, safety rails, and a first-week win. The long-term platform should grow into isolated workspaces where each Minion can use connected apps, inboxes, files, computer sessions, templates, watchdogs, observability, and human approval queues.
+
+
+PHASE 1 HARDENING PASS ADDED AFTER DOCTRINE APPROVAL
+
+After the doctrine approval reply, the repo was updated with a production-real Phase 1 hardening slice while keeping Phase 2 paused.
+
+Added:
+
+- AGENTS.md doctrine guardrail so future sessions do not drift into generic chatbot builder assumptions.
+- Environment contracts for Clerk, managed Postgres, OpenAI concierge generation, and a development-only local fallback flag.
+- Clerk identity boundary that uses real Clerk identity when configured and local-demo identity only for development or missing credentials.
+- Prisma/Postgres persistence adapter behind the existing onboarding and dashboard flow when DATABASE_URL is configured.
+- Local file-backed fallback remains available for development and screenshots.
+- Audit log and usage event writes on blueprint save when Postgres is active.
+- OpenAI chat-completions concierge service boundary for GPT-4o mini or configured MVP model.
+- Deterministic fallback when OPENAI_API_KEY is absent or the model call fails.
+- Blueprint edit, refine with concierge, generate model blueprint, save draft, and approve blueprint controls.
+- Operations-board dashboard fields for status, mission, first work order, operating knowledge, memory rules, approval queue, connected tools, next action, last activity, first-week win, owner review state, generation mode, and storage mode.
+
+Verification added:
+
+- npm run qa passed locally.
+- npm run qa passed on VPS2.
+- Runtime API check approved a Clearwater home services Minion Blueprint with local fallback.
+- Runtime dashboard check verified approval queue, connected tools, next action, and last activity sections.
+- Fresh screenshots were captured for mobile, tablet, desktop, and a browser-state screenshot showing edit/refine/save/approve controls.

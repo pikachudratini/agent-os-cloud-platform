@@ -32,6 +32,7 @@ Evidence rule: never mark a task done without command output, screenshots, or ot
 | P1-006 | Deployment readiness | Phase 1 | P1-005 | blocked | Vercel project has required env vars and latest main deploy passes | `npx vercel whoami` on VPS2 returned: No existing credentials found. | Needs Vercel token/login plus Clerk and managed Postgres environment variables. |
 | P1-008 | Source-material product doctrine pass | Phase 1 | P1-005 | review | Source packet synthesis updates PRODUCT, README, onboarding copy, dashboard copy, generated plan structure, visual language notes, and screenshots | `npm run qa` passed 2026-07-04. Runtime curl verified onboarding save and dashboard. Screenshots captured: `docs/qa-screenshots/minionmint-onboarding-375.png`, `docs/qa-screenshots/minionmint-onboarding-768.png`, `docs/qa-screenshots/minionmint-dashboard-1440.png`. | Blocks Phase 2 feature expansion until accepted. |
 | P1-007 | Prepare Vercel project for MinionMint.com | Phase 1 | P1-006 | blocked | Vercel project is prepared for MinionMint.com, exact DNS records are captured, Porkbun apex and www records are updated after Vercel provides them, and both https://minionmint.com and https://www.minionmint.com verify externally | Deployment plan added at docs/deployment/minionmint-vercel.md. Blocked before DNS because Vercel credentials are not configured. | Keep DNS pending until Vercel gives exact records. Do not call live until both hostnames verify. |
+| P1-009 | Phase 1 hardening approval | Phase 1 | P1-008 | review | Repo has doctrine guardrail, env contracts, Prisma/Postgres adapter boundary, Clerk identity boundary, model-backed concierge boundary, blueprint edit/refine/approve states, operations-board dashboard preview, refreshed screenshots, npm run qa, and CI | `npm run qa` passed locally and on VPS2 2026-07-04. Runtime POST `/api/onboarding` approved a blueprint with local fallback. Dashboard curl verified approval queue, connected tools, next action, and last activity sections. Screenshots captured in `docs/qa-screenshots/`, including `minionmint-hardening-onboarding-controls.png`. | Phase 2 remains paused until this production-real Phase 1 slice is accepted. |
 
 ## Top Clarifying Questions For Approval
 
@@ -70,3 +71,13 @@ Answered 2026-07-04: Clerk, Vercel plus managed Postgres, GPT-4o-mini or GPT-4.1
 - Updated README, PRODUCT, onboarding copy, dashboard copy, generated plan structure, visual language, and product marketing context.
 - Revised UI spacing and brand accents with subtle neon yellow and neon blue highlights.
 - Verification completed: `npm run qa`, runtime save/dashboard curl checks, and updated mobile, tablet, and desktop screenshots.
+
+### 2026-07-04 Doctrine approved and Phase 1 hardening started
+
+- Approval document accepted MinionMint as a minting desk for bounded AI workers and approved the product doctrine as the working foundation.
+- Added persistent `AGENTS.md` guardrail so future sessions do not drift toward generic chatbot builder assumptions.
+- Added environment contracts for Clerk, managed Postgres, OpenAI concierge generation, and local fallback forcing.
+- Added Prisma/Postgres persistence boundary behind the existing onboarding and dashboard flow while keeping local fallback for development.
+- Added model-backed concierge service boundary with deterministic fallback.
+- Added blueprint edit, refine, approve, and save states before provisioning.
+- Expanded dashboard toward an operations-board preview with status, mission, first work order, knowledge, memory, approval queue, connected tools, next action, last activity, first-week win, and owner review state.

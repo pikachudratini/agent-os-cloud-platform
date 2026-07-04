@@ -149,3 +149,19 @@ The additional Gemini video ingestion reinforced five product requirements:
 3. **Vertical delivery**: the strongest commercial wedge is a specific worker for a specific industry or workflow, not a generic all-purpose assistant.
 4. **Workspace isolation and observability**: future client/project workspaces need separate data, connected apps, files, inboxes, health checks, watchdogs, and audit trails.
 5. **Blueprint as audit artifact**: onboarding should produce something useful outside the app: a diagnosis of the workflow, the proposed worker, required inputs, approval rails, first-week win, and later automation path.
+
+
+## Phase 1 Hardening Doctrine
+
+The approved next milestone keeps Phase 2 paused. MinionMint must become production-real at the Minion Blueprint layer before virtual computers, swarms, broad autonomy, or computer-use are introduced.
+
+Phase 1 hardening requires:
+
+- real environment contracts for Clerk, managed Postgres, and OpenAI,
+- Prisma/Postgres persistence behind onboarding and dashboard when `DATABASE_URL` is configured,
+- local fallback only for development and screenshots,
+- Clerk-backed user identity and workspace ownership when keys are configured,
+- model-backed concierge generation through GPT-4.1 mini or GPT-4o mini when `OPENAI_API_KEY` is configured,
+- deterministic fallback for tests and cost control,
+- blueprint edit, refine, approve, and save states before anything is provisioned,
+- operations-board dashboard structure that previews status, mission, first work order, operating knowledge, memory rules, approval queue, connected tools, next action, last activity, first-week win, and owner review state.
