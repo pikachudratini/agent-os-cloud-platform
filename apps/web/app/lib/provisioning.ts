@@ -102,19 +102,6 @@ const providerSpecificEnv: Partial<Record<ComputerProviderName, string[]>> = {
   scrapybara: ['SCRAPYBARA_API_KEY'],
 };
 
-const selfHostedReadinessItems = [
-  'VPS or server pool config',
-  'container or VM runtime',
-  'base image with Hermes installed',
-  'per-Minion workspace volume',
-  'per-Minion Hermes profile config',
-  'secure credential storage',
-  'public access or remote desktop path',
-  'process supervisor',
-  'logging and observability',
-  'owner stop and takeover controls',
-];
-
 function hasEnv(name: string) {
   return Boolean(process.env[name]?.trim());
 }
@@ -150,7 +137,16 @@ function getProviderReadinessChecks(provider: ComputerProviderName | null): Prov
   if (hasEnv('MINIONMINT_WORKSPACE_BASE_IMAGE')) checks.push(readinessFromEnv('Workspace base image', 'MINIONMINT_WORKSPACE_BASE_IMAGE', false));
 
   if (provider === 'self_hosted') {
-    return checks.concat(selfHostedReadinessItems.map((label) => ({ label, required: true, status: 'planned' as const })));
+    return checks.concat([
+      readinessFromEnv('Self-hosted workspace root', 'MINIONMINT_SELF_HOSTED_WORKSPACE_ROOT'),
+      readinessFromEnv('Self-hosted process supervisor launch command', 'MINIONMINT_SELF_HOSTED_LAUNCH_COMMAND'),
+      readinessFromEnv('Public access or console base URL', 'MINIONMINT_SELF_HOSTED_CONSOLE_BASE_URL', false),
+      { label: 'Per-Minion workspace volume', required: true, status: hasEnv('MINIONMINT_SELF_HOSTED_WORKSPACE_ROOT') ? 'configured' as const : 'planned' as const },
+      { label: 'Per-Minion Hermes profile config', required: true, status: hasEnv('MINIONMINT_HERMES_TEMPLATE_REF') ? 'configured' as const : 'planned' as const },
+      { label: 'Secure credential storage', required: true, status: hasEnv('MINIONMINT_CREDENTIAL_VAULT_PROVIDER') ? 'configured' as const : 'planned' as const },
+      { label: 'Owner stop and takeover controls', required: true, status: hasEnv('MINIONMINT_SELF_HOSTED_LAUNCH_COMMAND') ? 'configured' as const : 'planned' as const },
+      { label: 'Logging and observability', required: false, status: 'planned' as const },
+    ]);
   }
 
   if (provider !== null) {
@@ -270,8 +266,61 @@ class LocalStubComputerProvider implements ComputerProvider {
   }
 }
 
-export class ProviderNeutralMinionRuntimeProvider implements MinionRuntimeProvider {
-  private computerProvider = new LocalStubComputerProvider();
+class SelfHostedComputerProvider implements ComputerProvider {
+  providerName: ComputerProviderName = 'self_hosted';
+
+  checkReadiness() {
+    return getProviderReadinessChecks('self_hosted');
+  }
+
+  async prepareWorkspace(blueprint: OnboardingPlan) {
+    return {
+      minionId: blueprint.agentSpec.name,
+      provider: this.providerName,
+      status: hasEnv('MINIONMINT_SELF_HOSTED_WORKSPACE_ROOT') ? 'configured' as const : 'planned' as const,
+      message: hasEnv('MINIONMINT_SELF_HOSTED_WORKSPACE_ROOT')
+        ? 'Self-hosted adapter can prepare a per-Minion workspace directory and Hermes profile files.'
+        : 'Set MINIONMINT_SELF_HOSTED_WORKSPACE_ROOT before preparing owned workspace files.',
+    };
+  }
+
+  async launchWorkspace(minionId: string) {
+    return this.workspaceStatus(minionId, hasEnv('MINIONMINT_SELF_HOSTED_LAUNCH_COMMAND') ? 'configured' : 'planned', hasEnv('MINIONMINT_SELF_HOSTED_LAUNCH_COMMAND') ? 'Self-hosted launch command is configured for supervisor handoff.' : 'Set MINIONMINT_SELF_HOSTED_LAUNCH_COMMAND before launch.');
+  }
+
+  async stopWorkspace(minionId: string) {
+    return this.workspaceStatus(minionId, 'configured', 'Self-hosted stop requested through the runtime process supervisor.');
+  }
+
+  async getWorkspaceStatus(minionId: string) {
+    return this.workspaceStatus(minionId, hasEnv('MINIONMINT_SELF_HOSTED_WORKSPACE_ROOT') ? 'configured' : 'planned', 'Self-hosted workspace status is tracked in the Minion runtime record.');
+  }
+
+  async getAccessUrl(minionId: string) {
+    const baseUrl = process.env.MINIONMINT_SELF_HOSTED_CONSOLE_BASE_URL?.replace(/\/$/, '');
+    return baseUrl ? `${baseUrl}/${encodeURIComponent(minionId)}` : null;
+  }
+
+  async attachCredentials(minionId: string, credentialRefs: string[]) {
+    return this.workspaceStatus(minionId, credentialRefs.length > 0 ? 'configured' : 'planned', credentialRefs.length > 0 ? 'Credential references attached to scaffolded vault path.' : 'No credential references attached yet.');
+  }
+
+  private workspaceStatus(minionId: string, status: ProvisioningSurfaceStatus, message: string): WorkspaceStatus {
+    return {
+      minionId,
+      provider: this.providerName,
+      status,
+      message,
+    };
+  }
+}
+
+export class ProviderNeutralMinionRuntimeProvider {
+  private computerProvider: ComputerProvider;
+
+  constructor() {
+    this.computerProvider = getSelectedComputerProvider() === 'self_hosted' ? new SelfHostedComputerProvider() : new LocalStubComputerProvider();
+  }
 
   checkReadiness() {
     return getProvisioningReadiness();

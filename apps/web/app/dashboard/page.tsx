@@ -54,8 +54,14 @@ export default async function DashboardPage() {
               <p><strong>Blueprint ID:</strong> {runtime.blueprintId}</p>
               <p><strong>Workspace status:</strong> {runtime.workspaceStatus.replaceAll('_', ' ')}</p>
               <p><strong>Hermes template ref:</strong> {runtime.hermesTemplateRef || 'not configured'}</p>
+              <p><strong>Workspace root:</strong> {runtime.workspaceRoot || 'not prepared'}</p>
+              <p><strong>Hermes profile path:</strong> {runtime.hermesProfilePath || 'not generated'}</p>
+              <p><strong>Hermes config path:</strong> {runtime.hermesConfigPath || 'not generated'}</p>
+              <p><strong>Credential vault path:</strong> {runtime.credentialVaultPath || 'not generated'}</p>
+              <p><strong>Process supervisor:</strong> {runtime.processSupervisor.status}</p>
               <p><strong>Credential vault refs:</strong> {runtime.credentialVaultRefs.join(', ')}</p>
               <RuntimeActions actions={runtime.availableActions} workspaceUrl={runtime.workspaceUrl} missingStep={runtime.nextMissingImplementationStep} />
+              <details><summary>Runtime logs</summary><ul>{runtime.logs.map((entry) => <li key={entry}>{entry}</li>)}</ul></details>
             </article>
           )}
           {runtime && (

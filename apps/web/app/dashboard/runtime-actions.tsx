@@ -15,22 +15,27 @@ const labels: Record<RuntimeAction, string> = {
   launch_minion: 'Launch Minion',
   open_workspace: 'Open workspace',
   stop_minion: 'Stop Minion',
+  status_check: 'Check status',
 };
 
 export function RuntimeActions({ actions, workspaceUrl, missingStep }: RuntimeActionsProps) {
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function prepare() {
+  async function runRuntimeAction(action: RuntimeAction) {
     setBusy(true);
-    setMessage('Preparing runtime record and Hermes config draft...');
+    setMessage(`${labels[action]} requested...`);
     try {
-      const response = await fetch('/api/provisioning', { method: 'POST' });
+      const response = await fetch('/api/provisioning', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
       const payload = await response.json();
       const step = payload.runtime?.nextMissingImplementationStep || payload.message || missingStep;
-      setMessage(`Runtime prepared. Next missing implementation step: ${step}`);
+      setMessage(`${labels[action]} updated. Next missing implementation step: ${step}`);
     } catch {
-      setMessage('Runtime preparation failed in the browser. Check server logs and try again.');
+      setMessage('Runtime action failed in the browser. Check server logs and try again.');
     } finally {
       setBusy(false);
     }
@@ -39,8 +44,8 @@ export function RuntimeActions({ actions, workspaceUrl, missingStep }: RuntimeAc
   return (
     <div className="runtime-actions">
       {actions.map((action) => {
-        if (action === 'prepare_workspace' || action === 'generate_config') {
-          return <button key={action} onClick={prepare} disabled={busy}>{labels[action]}</button>;
+        if (action === 'prepare_workspace' || action === 'generate_config' || action === 'status_check' || action === 'launch_minion' || action === 'stop_minion') {
+          return <button key={action} onClick={() => runRuntimeAction(action)} disabled={busy}>{labels[action]}</button>;
         }
         if (action === 'open_workspace') {
           return <a key={action} className="button secondary" href={workspaceUrl || '#'} aria-disabled={!workspaceUrl}>{labels[action]}</a>;
