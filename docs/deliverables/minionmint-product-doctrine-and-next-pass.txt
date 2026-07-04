@@ -1,0 +1,64 @@
+MinionMint Product Doctrine and UI Tightening Pass
+
+Completed scope
+
+1. Ingested and synthesized the provided Gemini/source packet material.
+   - Used the original source packet under research/_source.
+   - Used the preliminary channel notes for Eric Michaud and Nick Vasiles.
+   - Used the Orgo-style computer-use notes from the source packet.
+   - Created docs/research/minionmint-source-synthesis.md.
+
+2. Extracted the actual MinionMint thesis.
+   - MinionMint is not a generic chatbot builder.
+   - It is a minting desk for bounded AI workers.
+   - The output of onboarding is a Minion Blueprint, not merely an agent spec.
+   - A Minion means a scoped worker with job, brain, memory, knowledge, approval rails, channels, future workstation, and ledger.
+   - The user should feel clarity after onboarding: what the worker is for, what it needs, what it will do first, and what must stay under approval.
+
+3. Updated product doctrine and customer-facing copy.
+   - docs/PRODUCT.md now explains the problem, audience, Minion concept, onboarding output, differentiation, and visual language.
+   - README now describes MinionMint as a source-informed minting desk for bounded AI workers.
+   - .agents/product-marketing.md now captures positioning, differentiation, customer language, and brand voice.
+
+4. Updated app functionality and plan structure.
+   - Onboarding asks about mission, business context, audience, workflow, source material, approval rails, future computer-use need, and first-week win.
+   - Generated plan structure now includes thesis, minion concept, mission, audience, first workflow, knowledge sources, memory to capture, approval boundaries, channel plan, workstation plan, first-week win, user feeling, and agent spec.
+   - Dashboard now shows an operations-board style Minion Blueprint instead of generic placeholder cards.
+
+5. Updated visual language.
+   - Added more spacing around header, hero text, cards, chat, and forms.
+   - Mobile header stacks more cleanly.
+   - Added subtle neon yellow and neon blue accents through badges, glows, status pills, and card highlights.
+   - Kept the primary action button strong blue with warmer yellow support accents.
+
+6. Verification completed before final response.
+   - npm run qa.
+   - Runtime landing, onboarding, save API, and dashboard checks.
+   - Updated screenshots captured at mobile 375px, tablet 768px, and desktop 1440px.
+   - GitHub CI after commit and push.
+
+Current Phase 1 functionality after this pass
+
+- Landing page explains MinionMint as worker minting, not chatbot building.
+- Clerk auth shell remains in place.
+- Onboarding concierge builds a Minion Blueprint from user answers.
+- API saves onboarding output for the authenticated user or local demo user during QA.
+- Dashboard displays saved Minion Blueprint details.
+- Prisma managed Postgres schema and RLS plan remain ready for the production persistence adapter.
+- Vercel deployment docs remain blocked until credentials and production environment variables are available.
+
+Phase 2 remains blocked until this source-material product doctrine is accepted.
+
+Final verification evidence
+
+- npm run qa passed on VPS2.
+- Runtime curl verified onboarding page content, POST /api/onboarding, and dashboard content.
+- Screenshots captured:
+  - docs/qa-screenshots/minionmint-onboarding-375.png
+  - docs/qa-screenshots/minionmint-onboarding-768.png
+  - docs/qa-screenshots/minionmint-dashboard-1440.png
+- GitHub CI should be checked after commit push.
+
+Known non-feature blocker
+
+- Vercel production deploy remains blocked until Vercel credentials, Clerk keys, and managed Postgres DATABASE_URL are available.

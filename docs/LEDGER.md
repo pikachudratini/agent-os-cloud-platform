@@ -30,6 +30,7 @@ Evidence rule: never mark a task done without command output, screenshots, or ot
 | P1-004 | Save onboarding state | Phase 1 | P1-002, P1-003 | review | API route saves onboarding output for authenticated user or local QA demo user | POST /api/onboarding returned 201-style JSON with saved Clearwater plumbing workspace on 2026-07-04. | File-backed local adapter, Prisma schema ready for managed Postgres adapter. |
 | P1-005 | Minimal dashboard | Phase 1 | P1-004 | review | Returning user can see saved project/workspace/agent summary in dashboard | Dashboard curl showed saved workspace and desktop screenshot passed QA: docs/qa-screenshots/dashboard-1440.png. | Protected by Clerk middleware when Clerk env vars are configured. |
 | P1-006 | Deployment readiness | Phase 1 | P1-005 | blocked | Vercel project has required env vars and latest main deploy passes | `npx vercel whoami` on VPS2 returned: No existing credentials found. | Needs Vercel token/login plus Clerk and managed Postgres environment variables. |
+| P1-008 | Source-material product doctrine pass | Phase 1 | P1-005 | review | Source packet synthesis updates PRODUCT, README, onboarding copy, dashboard copy, generated plan structure, visual language notes, and screenshots | `npm run qa` passed 2026-07-04. Runtime curl verified onboarding save and dashboard. Screenshots captured: `docs/qa-screenshots/minionmint-onboarding-375.png`, `docs/qa-screenshots/minionmint-onboarding-768.png`, `docs/qa-screenshots/minionmint-dashboard-1440.png`. | Blocks Phase 2 feature expansion until accepted. |
 | P1-007 | Prepare Vercel project for MinionMint.com | Phase 1 | P1-006 | blocked | Vercel project is prepared for MinionMint.com, exact DNS records are captured, Porkbun apex and www records are updated after Vercel provides them, and both https://minionmint.com and https://www.minionmint.com verify externally | Deployment plan added at docs/deployment/minionmint-vercel.md. Blocked before DNS because Vercel credentials are not configured. | Keep DNS pending until Vercel gives exact records. Do not call live until both hostnames verify. |
 
 ## Top Clarifying Questions For Approval
@@ -61,3 +62,11 @@ Answered 2026-07-04: Clerk, Vercel plus managed Postgres, GPT-4o-mini or GPT-4.1
 - Responsive screenshots captured at 375, 768, and 1440 widths in `docs/qa-screenshots/`.
 - Vercel deployment and MinionMint.com DNS are blocked until Vercel credentials, Clerk keys, managed Postgres URL, and DNS records are available.
 - `npm audit --audit-level=moderate` reports a moderate PostCSS advisory through Next with no fix available at the installed version; track before production launch.
+
+### 2026-07-04 Phase 1 source doctrine and UI tightening
+
+- Ingested provided source packet and preliminary channel notes into `docs/research/minionmint-source-synthesis.md`.
+- Updated product doctrine so MinionMint is a Minion Blueprint minting desk, not a generic chatbot builder.
+- Updated README, PRODUCT, onboarding copy, dashboard copy, generated plan structure, visual language, and product marketing context.
+- Revised UI spacing and brand accents with subtle neon yellow and neon blue highlights.
+- Verification completed: `npm run qa`, runtime save/dashboard curl checks, and updated mobile, tablet, and desktop screenshots.

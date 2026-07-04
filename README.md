@@ -2,12 +2,13 @@
 
 Customer-facing product name: **MinionMint**. Keep `agent-os-cloud-platform` as the internal repo and scaffold name until the first live deploy is stable.
 
+MinionMint is a minting desk for useful, bounded AI workers. It turns a messy business need into a clear Minion Blueprint: mission, memory, knowledge sources, approval rails, first work order, and the future channels or workstation the worker will need.
 
-MinionMint is a secure browser-based platform scaffold for creating custom AI agents with memory, knowledge, virtual computer support, and communication channels.
+This is not intended to be a generic chatbot builder. The product starts with diagnosis, not prompt editing. A non-technical user should finish onboarding knowing exactly what their Minion is for, what inputs it needs, what it can do alone, and what requires approval.
 
 ## Current status
 
-This repository contains the Phase 0 kickoff scaffold, architecture decision records, QA loop definition, task ledger, and monorepo tooling. Product feature implementation has not started yet, matching the kickoff instruction to do setup first.
+Phase 1 contains the MinionMint product-doctrine pass, Clerk auth shell, onboarding concierge, saved Minion Blueprint API, dashboard card, Prisma managed Postgres schema, RLS SQL plan, Vercel config, and responsive QA screenshots.
 
 ## Commands
 
@@ -16,15 +17,17 @@ npm install
 npm run lint
 npm test
 npm run build
+npm run qa
 ```
 
 ## Repository layout
 
-- `docs/PRODUCT.md`: product north star, user stories, iteration rules, phase plan.
+- `docs/PRODUCT.md`: product thesis, doctrine, audience, differentiation, visual language, phase plan.
+- `docs/research/minionmint-source-synthesis.md`: source-packet synthesis and platform thesis.
 - `docs/LEDGER.md`: resumable task ledger with acceptance criteria and evidence rules.
 - `docs/QA.md`: standing QA loop and release gates.
-- `docs/adr/`: architecture decision records ADR-0001 through ADR-0006.
-- `apps/web/`: frontend workspace placeholder.
+- `docs/adr/`: architecture decision records.
+- `apps/web/`: MinionMint web app.
 - `apps/api/`: backend workspace placeholder.
 - `packages/shared/`: shared TypeScript workspace placeholder.
 - `infra/`: infrastructure placeholder.
