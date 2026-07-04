@@ -5,7 +5,7 @@ Completed scope
 1. Ingested and synthesized the provided Gemini/source packet material.
    - Used the original source packet under research/_source.
    - Used the preliminary channel notes for Eric Michaud and Nick Vasiles.
-   - Used the Orgo-style computer-use notes from the source packet.
+   - Used the cloud-computer-style notes from the source packet.
    - Created docs/research/minionmint-source-synthesis.md.
 
 2. Extracted the actual MinionMint thesis.

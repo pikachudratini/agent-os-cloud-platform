@@ -6,7 +6,7 @@ Each agent is a data-defined spec plus memory plus an orchestrator loop. The sou
 
 ## Options Considered
 
-1. Managed virtual computer provider such as Orgo, E2B, Scrapybara, or Browserbase behind a `ComputerProvider` interface.
+1. Managed virtual computer provider such as E2B, Scrapybara, or Browserbase behind a `ComputerProvider` interface.
 2. Self-host VM orchestration.
 3. Browser-only automation first with full desktop later.
 4. No computer-use layer in early phases.

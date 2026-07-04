@@ -14,7 +14,7 @@ export default function SetupPage() {
       <div className="intro-copy">
         <span className="badge accent-badge">Use MinionMint</span>
         <h1>Blueprint now. Provider-neutral provisioning next.</h1>
-        <p className="lead">MinionMint is an owned platform with a pluggable computer provider layer. Orgo-style workspaces are a useful reference pattern, but Orgo is optional and only required when the Orgo adapter is selected.</p>
+        <p className="lead">MinionMint is an owned platform with a pluggable computer provider layer. Cloud-computer-style workspaces are a useful reference pattern, but no single managed provider is required.</p>
       </div>
       <div className="dashboard-layout operations-layout">
         <article className="card stack wide-card">
@@ -28,7 +28,7 @@ export default function SetupPage() {
         <article className="card stack wide-card">
           <h2>Provider-neutral provisioning environment</h2>
           <ul>
-            <li><strong>MINIONMINT_COMPUTER_PROVIDER:</strong> local_stub, self_hosted, orgo, e2b, browserbase, scrapybara, daytona, or modal.</li>
+            <li><strong>MINIONMINT_COMPUTER_PROVIDER:</strong> local_stub, self_hosted, e2b, browserbase, scrapybara, daytona, or modal.</li>
             <li><strong>MINIONMINT_HERMES_TEMPLATE_REF:</strong> approved Hermes agent template or base image reference.</li>
             <li><strong>MINIONMINT_CREDENTIAL_VAULT_PROVIDER:</strong> vault provider used to store user-owned provider keys securely.</li>
             <li><strong>MINIONMINT_WORKSPACE_REGION:</strong> optional preferred workspace region.</li>
@@ -38,7 +38,6 @@ export default function SetupPage() {
         <article className="card stack wide-card">
           <h2>Adapter-specific credentials</h2>
           <ul>
-            <li><strong>ORGO_API_KEY:</strong> required only when MINIONMINT_COMPUTER_PROVIDER is orgo.</li>
             <li><strong>E2B_API_KEY:</strong> required only when MINIONMINT_COMPUTER_PROVIDER is e2b.</li>
             <li><strong>BROWSERBASE_API_KEY:</strong> required only when MINIONMINT_COMPUTER_PROVIDER is browserbase.</li>
             <li><strong>SCRAPYBARA_API_KEY:</strong> required only when MINIONMINT_COMPUTER_PROVIDER is scrapybara.</li>

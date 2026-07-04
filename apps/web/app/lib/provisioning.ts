@@ -2,7 +2,7 @@ import type { OnboardingPlan } from './onboarding';
 
 export type ProvisioningSurfaceStatus = 'disabled' | 'planned' | 'configured' | 'connected';
 export type ProvisioningMode = 'local_demo' | 'production_phase_1' | 'provisioning_configured';
-export type ComputerProviderName = 'local_stub' | 'self_hosted' | 'orgo' | 'e2b' | 'browserbase' | 'scrapybara' | 'daytona' | 'modal';
+export type ComputerProviderName = 'local_stub' | 'self_hosted' | 'e2b' | 'browserbase' | 'scrapybara' | 'daytona' | 'modal';
 
 export type ProviderReadinessCheck = {
   label: string;
@@ -89,7 +89,6 @@ export interface MinionRuntimeProvider {
 const providerLabels: Record<ComputerProviderName, string> = {
   local_stub: 'Local stub',
   self_hosted: 'Self-hosted pool',
-  orgo: 'Orgo adapter',
   e2b: 'E2B adapter',
   browserbase: 'Browserbase adapter',
   scrapybara: 'Scrapybara adapter',
@@ -98,7 +97,6 @@ const providerLabels: Record<ComputerProviderName, string> = {
 };
 
 const providerSpecificEnv: Partial<Record<ComputerProviderName, string[]>> = {
-  orgo: ['ORGO_API_KEY'],
   e2b: ['E2B_API_KEY'],
   browserbase: ['BROWSERBASE_API_KEY'],
   scrapybara: ['SCRAPYBARA_API_KEY'],

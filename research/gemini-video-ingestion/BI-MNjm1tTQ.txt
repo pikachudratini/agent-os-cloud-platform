@@ -10,7 +10,7 @@ Here are the structured notes from the video, focusing on information relevant t
 
 **Agent-Platform Ideas:**
 
-*   **Orgo:** A platform that provides cloud-based virtual computers (VMs) where AI agents can live and operate.
+*   **cloud-computer provider:** A platform that provides cloud-based virtual computers (VMs) where AI agents can live and operate.
     *   **Benefits:**
         *   **Security:** Isolated environments protect the client and the agent provider.
         *   **Flexibility:** Allows agents to access various tools and platforms (email, Slack, GitHub, etc.) via connectors.
@@ -44,7 +44,7 @@ Here are the structured notes from the video, focusing on information relevant t
 
 **Dashboard/Product Implications:**
 
-*   **Workspace Concept:** The platform (Orgo) allows for the creation of workspaces where agents can live and operate, enabling segregation for different clients or projects.
+*   **Workspace Concept:** The platform (workspace provider) allows for the creation of workspaces where agents can live and operate, enabling segregation for different clients or projects.
 *   **Agent Customization:** The ability to choose different models (GPT 5.5, GLM 5.1, Kimi 2.6, Opus 4.7) and integrate various tools (email, GitHub, etc.) allows for tailored solutions.
 *   **Security Focus:** The platform's emphasis on isolated cloud computers and secure authentication is a key selling point.
 *   **Observability:** Providing agents with the ability to monitor their own performance and alert the provider of issues is crucial.

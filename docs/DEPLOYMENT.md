@@ -6,7 +6,7 @@ This document separates what works today from the provider-neutral provisioning 
 
 Phase 1 is a blueprint product. It is not a real workspace provisioning system yet.
 
-MinionMint owns the product, user accounts, dashboard, Minion configuration, credential setup, provisioning layer, and workspace lifecycle. Cloud-computer providers are adapters behind MinionMint. Orgo-style workspaces are a useful reference pattern, and Orgo can remain an optional managed provider, but MinionMint is not an Orgo wrapper.
+MinionMint owns the product, user accounts, dashboard, Minion configuration, credential setup, provisioning layer, and workspace lifecycle. Cloud-computer providers are adapters behind MinionMint. Cloud-computer-style workspaces are a useful reference pattern, but MinionMint should present its own owned provider layer rather than naming a reference vendor in product setup copy.
 
 Current app can:
 
@@ -93,7 +93,7 @@ Purpose: bridge from an approved Minion Blueprint to a real Minion workspace thr
 Provider-neutral environment:
 
 ```bash
-MINIONMINT_COMPUTER_PROVIDER=local_stub | self_hosted | orgo | e2b | browserbase | scrapybara | daytona | modal
+MINIONMINT_COMPUTER_PROVIDER=local_stub | self_hosted | e2b | browserbase | scrapybara | daytona | modal
 MINIONMINT_HERMES_TEMPLATE_REF=...
 MINIONMINT_CREDENTIAL_VAULT_PROVIDER=...
 MINIONMINT_WORKSPACE_REGION=... # optional
@@ -103,7 +103,6 @@ MINIONMINT_WORKSPACE_BASE_IMAGE=... # optional
 Provider-specific environment:
 
 ```bash
-ORGO_API_KEY=... # only when MINIONMINT_COMPUTER_PROVIDER=orgo
 E2B_API_KEY=... # only when MINIONMINT_COMPUTER_PROVIDER=e2b
 BROWSERBASE_API_KEY=... # only when MINIONMINT_COMPUTER_PROVIDER=browserbase
 SCRAPYBARA_API_KEY=... # only when MINIONMINT_COMPUTER_PROVIDER=scrapybara
@@ -149,7 +148,7 @@ Current implementation:
 - `apps/web/app/api/provisioning/route.ts` exposes readiness and prepare endpoints.
 - Dashboard displays the selected provider and blocks launch when provider-neutral requirements are missing.
 - Live provider calls are not implemented yet.
-- Orgo is documented as an optional adapter and example managed computer provider, not a required foundation.
+- Managed cloud-computer vendors are documented only as adapter categories, not as required foundations.
 
 ## Safety rules
 

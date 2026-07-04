@@ -1,7 +1,7 @@
 Project: Agent OS Cloud Platform
 Date: 2026-07-03
 Source: Claude Fable 5 via KIE.ai, coordinated by Hermy
-Original user brief: /root/.hermes/cache/documents/doc_02914f365ad9_orgo_Fable_project.txt
+Original user brief: archived source packet
 Raw Fable artifacts saved under: /root/fable-vault/raw/
 Reuse when: planning AI-agent platform with virtual computers, agent OS/brain, user onboarding, tenant security, communications, and Gemini YouTube ingestion.
 
@@ -101,7 +101,7 @@ Timelines assume an AI coding agent working near daily with you reviewing. Expec
 [Object storage: uploaded files, transcripts]  (S3/R2)
 [Queue: background jobs, ingestion, long tasks] (BullMQ or Celery)
         |
-[Virtual Computer Provider: Orgo or similar, per-agent on demand]
+[Virtual Computer Provider: managed or self-hosted cloud computer, per-agent on demand]
 [LLM providers: Anthropic / OpenAI / Gemini via a model router]
 ```
 
@@ -110,7 +110,7 @@ Key decisions:
 - **One backend monolith first.** Do not do microservices. A single Next.js app with API routes plus a worker process is enough through Phase 3.
 - **Postgres with pgvector** covers relational data and embeddings in one database. Avoid adding a separate vector DB until scale demands it.
 - **WebSockets or SSE** for streaming agent replies and, later, streaming the virtual computer screen.
-- **Model router layer** so agents can run on Claude, GPT, or Gemini per config. This matches the "bring your own model" pattern from the Orgo world and protects you from provider outages and price changes.
+- **Model router layer** so agents can run on Claude, GPT, or Gemini per config. This matches the "bring your own model" pattern from cloud-computer platforms and protects you from provider outages and price changes.
 
 ## 6. Agent Brain and OS Design
 
@@ -146,16 +146,16 @@ Also maintain a **structured facts table** per agent (key facts like "owner's na
 
 ## 7. Virtual Computer Strategy: Build vs Buy
 
-**Buy. Do not build.** Building your own VM orchestration (Firecracker microVMs, snapshotting, sub-second boot, screen streaming, security isolation) is a multi-engineer, multi-year infrastructure company on its own. That is literally what Orgo-style providers are.
+**Buy. Do not build.** Building your own VM orchestration (Firecracker microVMs, snapshotting, sub-second boot, screen streaming, security isolation) is a multi-engineer, multi-year infrastructure company on its own. That is literally what cloud-computer providers are.
 
 Recommendation:
 
-- **Phase 4: integrate a provider** such as Orgo (sub-500ms boot, full desktop with browser/terminal/files, works with Claude/GPT/Gemini, API fleet management) or comparable options like E2B, Scrapybara, or Browserbase (browser-only, cheaper for browsing tasks). Abstract it behind your own `ComputerProvider` interface so you can swap vendors.
+- **Phase 4: integrate a provider** such as cloud-computer provider (sub-500ms boot, full desktop with browser/terminal/files, works with Claude/GPT/Gemini, API fleet management) or comparable options like E2B, Scrapybara, or Browserbase (browser-only, cheaper for browsing tasks). Abstract it behind your own `ComputerProvider` interface so you can swap vendors.
 - **Cost control**: computers are on-demand only. Agent requests a computer for a task, it boots, does work, snapshots state if needed, shuts down. Never leave desktops idling per agent per user; that would destroy your margins.
 - **Two tiers**: browser-only sandbox (cheap, covers 80% of tasks like research and form filling) and full desktop (expensive, for app-based work).
 - **Revisit build-vs-buy only** if you reach thousands of daily computer-hours and provider costs dominate revenue.
 
-## 8. Orgo-Style Integrations
+## 8. Cloud-Computer Integrations
 
 Patterns to adopt from the computer-use-agent ecosystem your source channels cover:
 
@@ -186,7 +186,7 @@ Non-negotiable from Phase 2 onward:
 2. **AI-coded security holes.** GPT 5.5 will happily ship auth bugs. Mitigation: security review checklist per phase, managed auth provider, penetration test before real customer data, and never let the coding agent invent crypto or session handling.
 3. **Prompt injection and agent abuse.** An agent with email, phone, and a computer is a spam and fraud machine if hijacked. Mitigation: approval-by-default, rate limits, audit logs. Take this one seriously; it can kill the business legally.
 4. **Unit economics.** LLM tokens plus phone numbers plus virtual computers per user can exceed subscription revenue. Mitigation: meter everything from day one, on-demand computers only, usage caps per plan.
-5. **Provider dependency.** Orgo-style vendors, Twilio, and model APIs can change pricing or shut down. Mitigation: abstraction layers (ComputerProvider, ModelRouter, CommsProvider) so swaps are config changes.
+5. **Provider dependency.** cloud-computer vendors, Twilio, and model APIs can change pricing or shut down. Mitigation: abstraction layers (ComputerProvider, ModelRouter, CommsProvider) so swaps are config changes.
 6. **YouTube-derived knowledge drift.** The channels describe what is possible now; APIs shown in videos change fast. Mitigation: your Gemini knowledge base logs publish dates, and the coding agent verifies against current official docs before implementing anything from a video.
 7. **Onboarding is the product.** If the concierge conversation confuses non-technical users, they exit, exactly as you predicted. Mitigation: user-test the onboarding flow with 5 real non-technical people in Phase 2 before building anything else.
 8. **Solo founder plus AI agent maintenance load.** Every feature you ship, you must operate. Mitigation: managed services everywhere (auth, email, telephony, computers, hosting), boring stack (Next.js, Postgres), and monitoring/alerts from Phase 2.
@@ -378,7 +378,7 @@ DO NOW, IN ORDER:
    /packages/           shared code
    /infra/              IaC and deployment
    Choose and justify the monorepo tooling in an ADR.
-2. Write ADR-0001 through ADR-0006 covering: tech stack, multi-tenancy and data isolation model, auth and security baseline, agent runtime approach (including whether to use a managed virtual-computer provider such as Orgo or self-host, citing the research corpus), memory and knowledge base architecture, and communication channel integration strategy. Each ADR: Context, Options considered, Decision, Consequences, Research citations with video dates.
+2. Write ADR-0001 through ADR-0006 covering: tech stack, multi-tenancy and data isolation model, auth and security baseline, agent runtime approach (including whether to use a managed virtual-computer provider such as cloud-computer provider or self-host, citing the research corpus), memory and knowledge base architecture, and communication channel integration strategy. Each ADR: Context, Options considered, Decision, Consequences, Research citations with video dates.
 3. Create /docs/LEDGER.md with every task needed for the MVP, derived from the P0 rows of feature_matrix.md. Ledger format per task:
    ID | Title | Phase | Depends on | Status (todo/doing/blocked/review/done) | Acceptance criteria | Notes
 4. Propose a phase plan: Phase 0 foundations, Phase 1 onboarding agent, Phase 2 agent provisioning and virtual computers, Phase 3 communication channels, Phase 4 hardening and responsive QA. Map every ledger task to a phase.
@@ -478,7 +478,7 @@ Postgres as the primary store. Use `uuid` primary keys (v7 if available, for ind
 
 - `agents(id, org_id, workspace_id, name, role_description, system_prompt, model_provider, model_name, status, config jsonb, version int)`
 - `agent_versions(id, agent_id, version, system_prompt, config jsonb, created_by)` for rollback and audit of prompt changes
-- `virtual_computers(id, org_id, agent_id, provider, external_instance_id, state, region, booted_at, stopped_at, last_heartbeat_at)` where provider is Orgo or whatever VM layer you adopt
+- `virtual_computers(id, org_id, agent_id, provider, external_instance_id, state, region, booted_at, stopped_at, last_heartbeat_at)` where provider is the selected workspace provider you adopt
 - `agent_sessions(id, agent_id, computer_id, started_at, ended_at, exit_reason)`
 - `tasks(id, org_id, workspace_id, agent_id, status, priority, input jsonb, result jsonb, error, scheduled_for, started_at, finished_at, parent_task_id)` with statuses `queued, running, waiting_approval, succeeded, failed, cancelled`
 
@@ -642,7 +642,7 @@ All numbers are estimates in USD as of mid 2026. Verify current pricing before c
 ### Core assumptions
 
 - **LLM usage per active agent per month:** 3M input tokens, 600K output tokens on a mid-tier model (Claude Sonnet class or GPT 5.5 mini class), plus occasional escalation to a top-tier model for hard tasks (about 10 percent of traffic).
-- **Virtual computer (Orgo-style VM):** billed per active minute, not per month. Assume the average agent uses 15 hours of VM time per month at roughly 0.05 to 0.10 per hour equivalent. Idle agents cost near zero if you enforce auto-stop.
+- **Virtual computer (cloud-computer-style VM):** billed per active minute, not per month. Assume the average agent uses 15 hours of VM time per month at roughly 0.05 to 0.10 per hour equivalent. Idle agents cost near zero if you enforce auto-stop.
 - **Telephony (calls plus SMS via Twilio or similar):** assume 30 percent of users enable it. Phone number rental about 1.15 per number per month, SMS about 0.008 per message, voice about 0.014 per minute plus speech-to-text and text-to-speech costs (roughly 0.05 to 0.10 per voice minute all-in with a realtime voice model).
 - **Email:** transactional email provider (Resend, Postmark) is cheap, budget 0.001 per email.
 - **Vector database plus storage for knowledge bases:** managed Postgres with pgvector, or Pinecone serverless. Small at low scale.
@@ -653,7 +653,7 @@ All numbers are estimates in USD as of mid 2026. Verify current pricing before c
 | Item | Monthly estimate |
 |---|---|
 | LLM inference | 250 to 500 |
-| VM compute (Orgo-style) | 60 to 120 |
+| VM compute (cloud-computer-style) | 60 to 120 |
 | Telephony (15 numbers, light usage) | 40 to 80 |
 | Email | under 10 |
 | Database, vector store, storage | 50 to 100 |

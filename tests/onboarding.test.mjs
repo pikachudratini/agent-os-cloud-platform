@@ -1,6 +1,25 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
+const filesThatMustNotNameRemovedProvider = [
+  'AGENTS.md',
+  'README.md',
+  'docs/PRODUCT.md',
+  'docs/DEPLOYMENT.md',
+  'apps/web/app/lib/provisioning.ts',
+  'apps/web/app/lib/onboarding.ts',
+  'apps/web/app/lib/concierge.ts',
+  'apps/web/app/setup/page.tsx',
+  'apps/web/app/dashboard/page.tsx',
+];
+
+const removedProviderPattern = new RegExp(`${['O', 'rgo'].join('')}|${['o', 'rgo'].join('')}|${['OR', 'GO'].join('')}`);
+
+for (const file of filesThatMustNotNameRemovedProvider) {
+  const content = readFileSync(file, 'utf8');
+  assert.doesNotMatch(content, removedProviderPattern, `${file} should not mention removed provider branding`);
+}
+
 const source = readFileSync('apps/web/app/lib/onboarding.ts', 'utf8');
 assert.match(source, /Minion Blueprint/);
 assert.match(source, /gpt-4o-mini/);
@@ -24,6 +43,7 @@ assert.match(source, /spendingLimits/);
 assert.match(source, /AgentPhone-style/);
 assert.match(source, /AgentMail-style/);
 assert.match(source, /AgentCard-style/);
+assert.match(source, /cloud-computer-style workspace/);
 
 const ui = readFileSync('apps/web/app/onboarding/ui.tsx', 'utf8');
 assert.match(ui, /Refine with concierge/);
@@ -53,13 +73,12 @@ assert.match(provisioning, /MINIONMINT_COMPUTER_PROVIDER/);
 assert.match(provisioning, /MINIONMINT_HERMES_TEMPLATE_REF/);
 assert.match(provisioning, /MINIONMINT_CREDENTIAL_VAULT_PROVIDER/);
 assert.match(provisioning, /self_hosted/);
-assert.match(provisioning, /ORGO_API_KEY/);
 assert.match(provisioning, /E2B_API_KEY/);
 assert.match(provisioning, /BROWSERBASE_API_KEY/);
 assert.match(provisioning, /SCRAPYBARA_API_KEY/);
 assert.match(provisioning, /buildHermesConfigPreview/);
 assert.match(provisioning, /renderHermesConfig/);
-assert.doesNotMatch(provisioning, /const requiredProvisioningEnv = \['ORGO_API_KEY'/);
+assert.doesNotMatch(provisioning, /const requiredProvisioningEnv/);
 
 const provisioningRoute = readFileSync('apps/web/app/api/provisioning/route.ts', 'utf8');
 assert.match(provisioningRoute, /getMinionProvisioningProvider/);
@@ -70,12 +89,13 @@ assert.match(setupPage, /Local demo mode/);
 assert.match(setupPage, /Production Phase 1 mode/);
 assert.match(setupPage, /Provisioning mode/);
 assert.match(setupPage, /Computer provider/);
-assert.match(setupPage, /ORGO_API_KEY:<\/strong> required only when/);
+assert.match(setupPage, /E2B_API_KEY:<\/strong> required only when/);
 assert.match(setupPage, /Do not paste provider keys/);
+assert.match(setupPage, /no single managed provider is required/);
 
 const dashboard = readFileSync('apps/web/app/dashboard/page.tsx', 'utf8');
 assert.match(dashboard, /Computer provider/);
-assert.match(dashboard, /Orgo is optional, not mandatory/);
+assert.match(dashboard, /No single managed provider is mandatory/);
 
 const readme = readFileSync('README.md', 'utf8');
 assert.match(readme, /Phase 1 complete does not mean MinionMint can provision real Minions yet/);
@@ -84,15 +104,15 @@ assert.match(readme, /Local demo mode/);
 assert.match(readme, /Production Phase 1 mode/);
 assert.match(readme, /Provisioning mode/);
 assert.match(readme, /Google OAuth enabled in Clerk/);
-assert.match(readme, /ORGO_API_KEY` only when `MINIONMINT_COMPUTER_PROVIDER=orgo/);
-assert.doesNotMatch(readme, /`ORGO_API_KEY` for Orgo-style cloud computer provisioning/);
+assert.match(readme, /E2B_API_KEY` only when `MINIONMINT_COMPUTER_PROVIDER=e2b/);
+assert.match(readme, /no single managed provider is required/);
 
 const deployment = readFileSync('docs/DEPLOYMENT.md', 'utf8');
 assert.match(deployment, /provider-neutral provisioning system/);
-assert.match(deployment, /MinionMint is not an Orgo wrapper/);
+assert.match(deployment, /Cloud-computer providers are adapters behind MinionMint/);
 assert.match(deployment, /ComputerProvider/);
 assert.match(deployment, /WorkspaceProvider/);
-assert.match(deployment, /ORGO_API_KEY=.*only when MINIONMINT_COMPUTER_PROVIDER=orgo/);
+assert.match(deployment, /E2B_API_KEY=.*only when MINIONMINT_COMPUTER_PROVIDER=e2b/);
 assert.match(deployment, /Owned or self-hosted provider requirements/);
 
-console.log('onboarding planner, provider-neutral provisioning bridge, model concierge boundary, blueprint review states, and doctrine guardrail are present.');
+console.log('onboarding planner, provider-neutral provisioning bridge, model concierge boundary, blueprint review states, no removed provider branding, and doctrine guardrail are present.');

@@ -128,7 +128,7 @@ The original source packet established the broad platform concept:
 - Communication channels.
 - Cost controls.
 - Managed infrastructure.
-- Future Orgo-style cloud computer integration.
+- Future Cloud-computer-style workspace integration.
 - Future virtual computer sessions with browser, terminal, files, and app access.
 
 2. Eric Michaud channel direction
@@ -152,7 +152,7 @@ The source direction from Nick Vasiles emphasized:
 - OpenClaw-style swarms.
 - Practical workflows and monetizable automation.
 
-4. Orgo-style platform direction
+4. Cloud-computer-style platform direction
 
 The source packet and additional videos emphasized:
 

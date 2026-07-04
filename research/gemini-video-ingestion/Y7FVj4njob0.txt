@@ -6,11 +6,11 @@ Here are structured notes for MinionMint based on the provided video transcript:
 
 **Video Title/Topic:** The $5k/mo One-Person Agent Business - Full Playbook
 
-**Core Thesis:** The video presents a playbook for building a $5,000/month per client business by leveraging AI agents, specifically focusing on the "Orgo" platform for managing these agents. The core idea is to simplify the process of deploying and managing AI agents for clients, allowing a single person to serve multiple clients with high-value, automated solutions.
+**Core Thesis:** The video presents a playbook for building a $5,000/month per client business by leveraging AI agents, specifically focusing on the "cloud-computer provider" platform for managing these agents. The core idea is to simplify the process of deploying and managing AI agents for clients, allowing a single person to serve multiple clients with high-value, automated solutions.
 
 **Agent-Platform Ideas:**
 
-*   **Orgo Platform:**
+*   **Cloud-computer platform:**
     *   Provides cloud computers (per client) for running AI agents.
     *   Offers templates for pre-configured agents (e.g., Claude, OpenClaw, Hermes Agent).
     *   Allows connecting various apps (Gmail, Google Calendar, Slack, Twitter, etc.) via API keys and credentials.
@@ -23,22 +23,22 @@ Here are structured notes for MinionMint based on the provided video transcript:
     *   Allows for custom agent creation and management.
     *   Provides API access for building custom agent integrations.
 *   **Hermes Agent:**
-    *   A specific type of AI agent that can be deployed on Orgo.
+    *   A specific type of AI agent that can be deployed on the workspace provider.
     *   Can be managed and configured with various skills and connectors.
     *   Can be cloned for easy deployment to multiple clients.
     *   Can be given its own email inbox (AgentMail).
     *   Can be given access to client logins and files.
     *   Can be trained to perform specific tasks based on client needs.
 *   **Claude Code:**
-    *   A tool that integrates with Orgo for managing AI agent code.
+    *   A tool that integrates with the workspace provider for managing AI agent code.
     *   Allows clients to connect their code and manage their agents.
     *   Enables setting up MCPs (Perplexity, Exa, Context, K) for the agents.
 
 **Computer-Use/Workflow Ideas:**
 
-*   **Client Workspace:** Each client gets their own isolated workspace on Orgo.
+*   **Client Workspace:** Each client gets their own isolated workspace on the workspace provider.
 *   **Agent Deployment:** Agents are deployed within these workspaces, allowing for management of multiple clients from one place.
-*   **API Calls:** Agents interact with various API tools and data sources through Orgo.
+*   **API Calls:** Agents interact with various API tools and data sources through the workspace provider.
 *   **Desktop Apps & Browser:** Agents can utilize desktop applications and browsers within their isolated environments.
 *   **Legacy Portals:** Agents can interact with legacy portals (e.g., IVANS, AMS, EZLynx).
 *   **Client Logins & Files:** Agents can access client-specific logins and files.
@@ -46,7 +46,7 @@ Here are structured notes for MinionMint based on the provided video transcript:
 *   **Skills & Connectors:** Agents can be equipped with specific skills and connectors to perform tasks.
 *   **Obsidian Second Brain:** Agents can leverage this for knowledge management.
 *   **Fed by Granola + Listless:** This seems to refer to data sources or inputs for the agents.
-*   **Orchestration:** Hermes agents can be orchestrated via Orgo MCP on Telegram.
+*   **Orchestration:** Hermes agents can be orchestrated via workspace provider control plane on Telegram.
 *   **Agent Setup:** Agents can be set up as 100% VMs managed from one client.
 *   **Lock-in:** Live client work happens within the workspace, creating a form of lock-in.
 *   **Workflow Automation:** The core value proposition is automating client workflows and solving specific problems for them.
@@ -55,7 +55,7 @@ Here are structured notes for MinionMint based on the provided video transcript:
 
 **Onboarding Implications:**
 
-*   **Simplified Setup:** Orgo's template system makes it easy to spin up pre-configured environments for agents.
+*   **Simplified Setup:** workspace provider template system makes it easy to spin up pre-configured environments for agents.
 *   **Client Collaboration:** The platform allows inviting clients into workspaces to collaborate on agent setup and workflow mapping.
 *   **Focus on Problem Solving:** The onboarding process should focus on understanding client pain points and mapping workflows to automate them, rather than technical setup for the client.
 *   **Free Trials:** Offering free trials (e.g., 3 days free, 20% off first 3 months) is a strategy to onboard clients.
@@ -70,8 +70,8 @@ Here are structured notes for MinionMint based on the provided video transcript:
 
 **Differentiation from Chatbot Builders:**
 
-*   **Focus on Managed Service:** Orgo is positioned as a platform for *managing* AI agents as a service, not just a tool for building chatbots.
-*   **Infrastructure Provisioning:** Orgo provides the underlying computing infrastructure (VMs, cloud computers) for the agents, abstracting away the complexity for the client.
+*   **Focus on Managed Service:** cloud-computer provider is positioned as a platform for *managing* AI agents as a service, not just a tool for building chatbots.
+*   **Infrastructure Provisioning:** cloud-computer provider provides the underlying computing infrastructure (VMs, cloud computers) for the agents, abstracting away the complexity for the client.
 *   **End-to-End Solution:** The platform aims to handle the entire process from setup to ongoing management and troubleshooting.
 *   **Client Isolation:** Each client gets their own dedicated, isolated workspace, ensuring data security and preventing interference.
 *   **Scalability:** The ability to clone workspaces and manage fleets of agents allows for scaling the business.

@@ -5,10 +5,10 @@ Source date: 2026-07-03 source packet plus channel discovery notes. This synthes
 ## Source inputs used
 
 - Original project brief captured in the source packet.
-- Orgo notes: cloud computers for AI agents, sub-500ms boot, full computer with browser, terminal, files, model-agnostic computer control, encrypted sessions, rotating credentials, fleet management by API.
+- Cloud-computer notes: cloud computers for AI agents, sub-500ms boot, full computer with browser, terminal, files, model-agnostic computer control, encrypted sessions, rotating credentials, fleet management by API.
 - Eric Michaud channel notes: AI systems, agent operating systems, Obsidian AI vaults, Codex levels, Hermes Agent usage, agents talking across terminals, prompts and systems that produce high-quality agent work.
 - Nick Vasiles channel notes: Computer Use Agents for founders, operators, business builders, AI employees for small businesses, one-person agent businesses, OpenClaw swarms, CUA workflows, and practical monetizable automation.
-- Architecture packet Parts 1 through 4, especially the MVP wedge, agent brain and OS design, Orgo-style integrations, tenant isolation, memory/retrieval, communication channels, and cost controls.
+- Architecture packet Parts 1 through 4, especially the MVP wedge, agent brain and OS design, cloud-computer integrations, tenant isolation, memory/retrieval, communication channels, and cost controls.
 
 ## Actual platform thesis
 

@@ -12,7 +12,7 @@ This is not intended to be a generic chatbot builder. The product starts with di
 
 The current app is a Phase 1 blueprint scaffold and doctrine pass. It can generate, refine, approve, save, and review a Minion Blueprint. It previews planned operating identity surfaces on the dashboard. It does **not** yet create a live workspace, install or launch Hermes inside that workspace, issue phone numbers, create email inboxes, issue payment cards, connect apps, or store user provider credentials through a production credential vault.
 
-MinionMint is provider-neutral. The first provisioning bridge defines how a Minion Blueprint can become a launched Minion workspace. The cloud-computer provider is pluggable. Orgo-style workspaces are the reference pattern, but Orgo is not required unless the user chooses the Orgo adapter.
+MinionMint is provider-neutral. The first provisioning bridge defines how a Minion Blueprint can become a launched Minion workspace. The cloud-computer provider is pluggable. Cloud-computer-style workspaces are a reference pattern, but no single managed provider is required.
 
 Current Phase 1 includes:
 
@@ -23,7 +23,7 @@ Current Phase 1 includes:
 - Dashboard preview for phone, email, payment, apps, credentials, knowledge vault, observability, owner takeover, and approval rails.
 - Provider-neutral provisioning interface and status API that clearly report whether real provisioning is configured.
 
-Next milestone: **First real Minion provisioning path.** That milestone must connect Google OAuth, secure credential setup, a selected workspace provider, Hermes template generation, per-Minion config, dashboard workspace status, and a launch/open workspace path. Orgo can be one optional fast-path adapter, not the foundation MinionMint depends on.
+Next milestone: **First real Minion provisioning path.** That milestone must connect Google OAuth, secure credential setup, a selected workspace provider, Hermes template generation, per-Minion config, dashboard workspace status, and a launch/open workspace path. Managed cloud-computer providers can be optional fast-path adapters, not the foundation MinionMint depends on.
 
 ## How to actually use this
 
@@ -84,7 +84,7 @@ This is the next product milestone. It is not live-complete in this repo yet.
 
 Required provider-neutral services:
 
-- `MINIONMINT_COMPUTER_PROVIDER=local_stub | self_hosted | orgo | e2b | browserbase | scrapybara | daytona | modal`
+- `MINIONMINT_COMPUTER_PROVIDER=local_stub | self_hosted | e2b | browserbase | scrapybara | daytona | modal`
 - `MINIONMINT_HERMES_TEMPLATE_REF` for the approved Hermes agent template or base image.
 - `MINIONMINT_CREDENTIAL_VAULT_PROVIDER` for secure credential storage.
 - Optional `MINIONMINT_WORKSPACE_REGION`.
@@ -92,12 +92,11 @@ Required provider-neutral services:
 
 Provider-specific keys are optional and namespaced. They are required only when their adapter is selected:
 
-- `ORGO_API_KEY` only when `MINIONMINT_COMPUTER_PROVIDER=orgo`.
 - `E2B_API_KEY` only when `MINIONMINT_COMPUTER_PROVIDER=e2b`.
 - `BROWSERBASE_API_KEY` only when `MINIONMINT_COMPUTER_PROVIDER=browserbase`.
 - `SCRAPYBARA_API_KEY` only when `MINIONMINT_COMPUTER_PROVIDER=scrapybara`.
 
-Owned and self-hosted paths should define provider requirements instead of pretending an Orgo key is universal:
+Owned and self-hosted paths should define provider requirements instead of pretending any managed-vendor key is universal:
 
 - VPS or server pool config.
 - Container or VM runtime.
@@ -133,7 +132,7 @@ Current provisioning status:
 - A provider-neutral interface exists in `apps/web/app/lib/provisioning.ts`.
 - `/api/provisioning` reports readiness and returns a clear not-configured response when provider-neutral requirements are missing.
 - Live provider calls are intentionally not implemented yet.
-- Orgo remains an optional adapter and reference model, not a required dependency.
+- Managed cloud-computer vendors remain optional adapters, not required dependencies.
 
 ## Commands
 

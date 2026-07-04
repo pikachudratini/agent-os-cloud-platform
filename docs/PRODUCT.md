@@ -12,11 +12,11 @@ One-line promise: **Mint a useful AI Minion with mission, knowledge, memory rule
 
 ## Source-Material Doctrine
 
-This doctrine is synthesized from the 2026-07-03 source packet, preliminary YouTube channel notes for Eric Michaud and Nick Vasiles, Orgo-style computer-use platform notes, and the additional 2026-07-04 Gemini video ingestion files `bpM9D1kQaAs`, `BI-MNjm1tTQ`, and `Y7FVj4njob0`. See `docs/research/minionmint-source-synthesis.md`.
+This doctrine is synthesized from the 2026-07-03 source packet, preliminary YouTube channel notes for Eric Michaud and Nick Vasiles, cloud-computer platform notes, and the additional 2026-07-04 Gemini video ingestion files `bpM9D1kQaAs`, `BI-MNjm1tTQ`, and `Y7FVj4njob0`. See `docs/research/minionmint-source-synthesis.md`.
 
 - Eric Michaud source direction: agent operating systems, memory/vault patterns, prompt/system quality, terminal-to-terminal agent coordination, and reliable agent work loops.
 - Nick Vasiles source direction: Computer Use Agents for founders and operators, AI employees for small businesses, OpenClaw-style swarms, and monetizable real-world workflows.
-- Orgo-style source direction: fast managed computers for AI agents, browser/terminal/files, fleet API, encrypted sessions, rotating credentials, and live screen trust.
+- Cloud-computer source direction: fast managed computers for AI agents, browser, terminal, files, fleet API, encrypted sessions, rotating credentials, and live screen trust.
 
 MinionMint combines those threads into a user-facing product: diagnose the mission, mint the Minion, attach knowledge and memory rules, set approval rails, then later plan controlled channels, app access, credentials, observability, and an on-demand workspace.
 
@@ -72,7 +72,7 @@ A future Minion may have an AgentCard-style controlled payment method or virtual
 
 ### Workspace identity
 
-A future Minion may run inside an Orgo-style cloud computer with browser access, files, apps, credentials, connected accounts, memory, and visible owner takeover. Composio-style connectors can represent future access to Gmail, Slack, Calendar, Notion, CRMs, dashboards, and other apps. Credentials stay owner-controlled in the user workspace and are never prefilled into templates.
+A future Minion may run inside a cloud-computer-style workspace with browser access, files, apps, credentials, connected accounts, memory, and visible owner takeover. Composio-style connectors can represent future access to Gmail, Slack, Calendar, Notion, CRMs, dashboards, and other apps. Credentials stay owner-controlled in the user workspace and are never prefilled into templates.
 
 ### Knowledge, memory, and observability
 
@@ -183,7 +183,7 @@ The additional Gemini video ingestion reinforced five product requirements:
 
 Phase 1 complete means the blueprint scaffold and doctrine pass are complete. It does not mean MinionMint can provision real Minions. The platform is not yet usable as a provider-neutral workspace provisioning system.
 
-The approved next milestone is the first real Minion provisioning path: Google OAuth, secure credential setup, a pluggable ComputerProvider or WorkspaceProvider layer, Hermes template/config generation, workspace status, and a dashboard path to launch or open the Minion workspace once providers are configured. Orgo can remain an optional adapter and reference pattern, but MinionMint should not depend on Orgo as the required foundation.
+The approved next milestone is the first real Minion provisioning path: Google OAuth, secure credential setup, a pluggable ComputerProvider or WorkspaceProvider layer, Hermes template/config generation, workspace status, and a dashboard path to launch or open the Minion workspace once providers are configured. Managed cloud-computer vendors can remain optional adapter categories, but MinionMint should not depend on any one provider as the required foundation.
 
 MinionMint must become production-real at the Minion Blueprint layer before virtual computers, swarms, broad autonomy, or computer-use are introduced.
 

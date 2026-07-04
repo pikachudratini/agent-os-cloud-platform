@@ -21,7 +21,7 @@ function systemPrompt() {
 
 Return only JSON that can merge into a Minion Blueprint. Use customer-facing MinionMint language: Minion, Minion Blueprint, minting interview, mission, approval rails, operating knowledge, memory rules, Minion operations board, knowledge vault, owner takeover, and future workspace.
 
-The blueprint must plan the Minion operating identity without enabling live integrations. Include planned AgentPhone-style phone or SMS identity, AgentMail-style email identity, AgentCard-style controlled payment identity, Composio-style app access, Orgo-style workspace, Hermes plus Obsidian or HermesVault knowledge, Latitude-style observability, owner-controlled credentials, approval rails, and spending limits.
+The blueprint must plan the Minion operating identity without enabling live integrations. Include planned AgentPhone-style phone or SMS identity, AgentMail-style email identity, AgentCard-style controlled payment identity, Composio-style app access, cloud-computer-style workspace, Hermes plus Obsidian or HermesVault knowledge, Latitude-style observability, owner-controlled credentials, approval rails, and spending limits.
 
 The blueprint must stay approval-first and Phase 1 safe. Do not provision virtual computers, swarms, broad autonomy, external sends, payment cards, phone numbers, email inboxes, or real actions. Focus on reviewable Minion design.`;
 }
