@@ -2,15 +2,22 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const schema = readFileSync('apps/web/prisma/schema.prisma', 'utf8');
-for (const model of ['Organization', 'User', 'Membership', 'Workspace', 'AuditLog', 'UsageEvent']) {
+for (const model of ['Organization', 'User', 'Membership', 'Workspace', 'AuditLog', 'MinionRuntime', 'UsageEvent']) {
   assert.match(schema, new RegExp(`model ${model}`));
 }
 assert.match(schema, /provider = "postgresql"/);
 assert.match(schema, /clerkUserId/);
 assert.match(schema, /onboardingState/);
+assert.match(schema, /credentialVaultRefs/);
+assert.match(schema, /hermesConfigDraft/);
+assert.match(schema, /nextMissingImplementationStep/);
 const rls = readFileSync('apps/web/prisma/migrations/0001_rls_plan.sql', 'utf8');
 assert.match(rls, /ENABLE ROW LEVEL SECURITY/);
 assert.match(rls, /app.current_org_id/);
+const runtimeMigration = readFileSync('apps/web/prisma/migrations/0002_minion_runtime.sql', 'utf8');
+assert.match(runtimeMigration, /CREATE TABLE IF NOT EXISTS "MinionRuntime"/);
+assert.match(runtimeMigration, /ENABLE ROW LEVEL SECURITY/);
+assert.match(runtimeMigration, /minion_runtime_org_isolation/);
 
 const store = readFileSync('apps/web/app/lib/workspace-store.ts', 'utf8');
 assert.match(store, /DATABASE_URL/);

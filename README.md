@@ -10,7 +10,7 @@ This is not intended to be a generic chatbot builder. The product starts with di
 
 **Phase 1 complete does not mean MinionMint can provision real Minions yet.**
 
-The current app is a Phase 1 blueprint scaffold and doctrine pass. It can generate, refine, approve, save, and review a Minion Blueprint. It previews planned operating identity surfaces on the dashboard. It does **not** yet create a live workspace, install or launch Hermes inside that workspace, issue phone numbers, create email inboxes, issue payment cards, connect apps, or store user provider credentials through a production credential vault.
+The current app is a Phase 1 blueprint scaffold and first runtime-preparation slice. It can generate, refine, approve, save, and review a Minion Blueprint. It can create a local Minion runtime record, generate a per-Minion Hermes config draft, and show staged dashboard actions for preparing, launching, opening, and stopping a workspace. It does **not** yet create a live workspace, install or launch Hermes inside that workspace, issue phone numbers, create email inboxes, issue payment cards, connect apps, or store user provider credentials through a production credential vault.
 
 MinionMint is provider-neutral. The first provisioning bridge defines how a Minion Blueprint can become a launched Minion workspace. The cloud-computer provider is pluggable. Cloud-computer-style workspaces are a reference pattern, but no single managed provider is required.
 
@@ -22,6 +22,9 @@ Current Phase 1 includes:
 - OpenAI-backed concierge when `OPENAI_API_KEY` is configured, with deterministic fallback otherwise.
 - Dashboard preview for phone, email, payment, apps, credentials, knowledge vault, observability, owner takeover, and approval rails.
 - Provider-neutral provisioning interface and status API that clearly report whether real provisioning is configured.
+- Local Minion runtime records with owner user ID, blueprint ID, provider type, workspace status, credential vault refs, logs, and next missing implementation step.
+- Per-Minion Hermes config draft generation from the approved blueprint.
+- Dashboard staged runtime actions: Prepare workspace, Generate Hermes config, Launch Minion, Open workspace, and Stop Minion.
 
 Next milestone: **First real Minion provisioning path.** That milestone must connect Google OAuth, secure credential setup, a selected workspace provider, Hermes template generation, per-Minion config, dashboard workspace status, and a launch/open workspace path. Managed cloud-computer providers can be optional fast-path adapters, not the foundation MinionMint depends on.
 

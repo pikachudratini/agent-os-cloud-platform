@@ -78,6 +78,13 @@ textarea { min-height: 120px; resize: vertical; }
 .identity-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
 .identity-grid span { border: 1px solid var(--blue-line); background: #ffffff; border-radius: 16px; padding: 10px 12px; color: var(--brand-deep); font-weight: 800; }
 .identity-grid.mini { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.wizard-steps, .runtime-actions { display: grid; gap: 14px; }
+.wizard-step { display: grid; grid-template-columns: 42px 1fr; gap: 14px; align-items: start; padding: 14px; border: 1px solid rgba(155, 188, 255, 0.38); border-radius: 20px; background: #ffffff; }
+.wizard-step > span { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 999px; background: var(--brand); color: white; font-weight: 900; }
+.wizard-step p, .runtime-message { margin: 6px 0 0; }
+.runtime-actions { align-items: start; }
+.runtime-actions button, .runtime-actions .button { width: fit-content; }
+.config-preview { max-height: 420px; overflow: auto; white-space: pre-wrap; border: 1px solid rgba(155, 188, 255, 0.38); border-radius: 20px; padding: 18px; background: #111827; color: #f8fafc; }
 @media (max-width: 980px) {
   .operations-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

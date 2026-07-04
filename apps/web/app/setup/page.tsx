@@ -7,18 +7,38 @@ const setupRows = [
   ['Provisioning mode', 'A computer or workspace provider is selected, a Hermes template or base image is configured, a credential vault is configured, and provider-specific credentials are present only for the selected adapter.'],
 ];
 
+const wizardSteps = [
+  ['Sign in and owner identity', 'Use Google OAuth in production so every Minion runtime record belongs to one owner.'],
+  ['Choose model provider', 'Select OpenAI or another configured model provider for the Hermes config draft.'],
+  ['Credential vault', 'Save encrypted credential references. Never expose raw keys in blueprint text, docs, screenshots, or client code.'],
+  ['Choose workspace path', 'Start with self-hosted for an owned path, or select a managed provider adapter when deliberately chosen.'],
+  ['Hermes template or base image', 'Point MinionMint at the approved Hermes template or base image used to prepare a Minion workspace.'],
+  ['Readiness check', 'Verify provider, template, vault, and adapter-specific credentials before launch actions become available.'],
+];
+
 export default function SetupPage() {
   const readiness = getProvisioningReadiness();
   return (
     <section className="stack page-intro">
       <div className="intro-copy">
-        <span className="badge accent-badge">Use MinionMint</span>
-        <h1>Blueprint now. Provider-neutral provisioning next.</h1>
-        <p className="lead">MinionMint is an owned platform with a pluggable computer provider layer. Cloud-computer-style workspaces are a useful reference pattern, but no single managed provider is required.</p>
+        <span className="badge accent-badge">Admin setup</span>
+        <h1>Configure MinionMint after the product loop.</h1>
+        <p className="lead">This page is the admin setup surface. The main product story is minting Minions, approving their rails, generating runtime config, preparing workspaces, and supervising work. MinionMint stays provider-neutral, and no single managed provider is required.</p>
       </div>
       <div className="dashboard-layout operations-layout">
         <article className="card stack wide-card">
-          <h2>Current mode: {readiness.mode.replaceAll('_', ' ')}</h2>
+          <h2>Setup wizard</h2>
+          <div className="wizard-steps">
+            {wizardSteps.map(([title, body], index) => (
+              <div className="wizard-step" key={title}>
+                <span>{index + 1}</span>
+                <div><strong>{title}</strong><p>{body}</p></div>
+              </div>
+            ))}
+          </div>
+        </article>
+        <article className="card stack wide-card">
+          <h2>Current readiness: {readiness.mode.replaceAll('_', ' ')}</h2>
           <p><strong>Computer provider:</strong> {readiness.providerLabel}</p>
           <p><strong>Can provision a real Minion now:</strong> {readiness.canProvisionRealMinion ? 'Readiness settings are present. Live adapter launch calls still need final implementation.' : 'No. Live provisioning is disabled until a provider, Hermes template, and credential vault are configured.'}</p>
           <p><strong>Blocked by:</strong> {readiness.missingReadinessItems.length ? readiness.missingReadinessItems.join(', ') : 'No provider-neutral readiness items are missing.'}</p>

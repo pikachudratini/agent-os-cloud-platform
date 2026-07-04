@@ -32,6 +32,7 @@ model Organization {
   updatedAt   DateTime     @updatedAt
   memberships Membership[]
   workspaces  Workspace[]
+  runtimes    MinionRuntime[]
 }
 
 model User {
@@ -68,6 +69,7 @@ model Workspace {
   updatedAt       DateTime        @updatedAt
   org             Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
   auditLogs       AuditLog[]
+  minionRuntimes  MinionRuntime[]
 
   @@index([orgId])
 }
@@ -86,6 +88,30 @@ model AuditLog {
   workspace   Workspace? @relation(fields: [workspaceId], references: [id])
 
   @@index([orgId, createdAt])
+}
+
+model MinionRuntime {
+  id                            String    @id @default(uuid()) @db.Uuid
+  orgId                         String    @db.Uuid
+  workspaceId                   String    @db.Uuid
+  ownerUserId                   String
+  blueprintId                   String
+  providerType                  String
+  workspaceStatus               String    @default("blueprint_ready")
+  hermesTemplateRef             String?
+  credentialVaultRefs           Json      @default("[]")
+  hermesConfigDraft             Json      @default("{}")
+  logs                          Json      @default("[]")
+  launchUrl                     String?
+  nextMissingImplementationStep String
+  createdAt                     DateTime  @default(now())
+  updatedAt                     DateTime  @updatedAt
+  org                           Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  workspace                     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, updatedAt])
+  @@index([workspaceId])
+  @@index([ownerUserId])
 }
 
 model UsageEvent {
