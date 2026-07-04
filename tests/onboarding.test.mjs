@@ -43,4 +43,36 @@ assert.match(guardrail, /AgentPhone-style/);
 assert.match(guardrail, /AgentMail-style/);
 assert.match(guardrail, /AgentCard-style/);
 
-console.log('onboarding planner, model concierge boundary, blueprint review states, and doctrine guardrail are present.');
+const provisioning = readFileSync('apps/web/app/lib/provisioning.ts', 'utf8');
+assert.match(provisioning, /MinionProvisioningProvider/);
+assert.match(provisioning, /ORGO_API_KEY/);
+assert.match(provisioning, /HERMES_TEMPLATE_REF/);
+assert.match(provisioning, /CREDENTIAL_VAULT_PROVIDER/);
+assert.match(provisioning, /StubMinionProvisioningProvider/);
+assert.match(provisioning, /buildHermesConfigPreview/);
+
+const provisioningRoute = readFileSync('apps/web/app/api/provisioning/route.ts', 'utf8');
+assert.match(provisioningRoute, /getMinionProvisioningProvider/);
+assert.match(provisioningRoute, /not_configured|409/);
+
+const setupPage = readFileSync('apps/web/app/setup/page.tsx', 'utf8');
+assert.match(setupPage, /Local demo mode/);
+assert.match(setupPage, /Production Phase 1 mode/);
+assert.match(setupPage, /Provisioning mode/);
+assert.match(setupPage, /Do not paste provider keys/);
+
+const readme = readFileSync('README.md', 'utf8');
+assert.match(readme, /Phase 1 complete does not mean MinionMint can provision real Minions yet/);
+assert.match(readme, /Local demo mode/);
+assert.match(readme, /Production Phase 1 mode/);
+assert.match(readme, /Provisioning mode/);
+assert.match(readme, /Google OAuth enabled in Clerk/);
+assert.match(readme, /Live Orgo\/Hermes API calls are intentionally not implemented yet/);
+
+const deployment = readFileSync('docs/DEPLOYMENT.md', 'utf8');
+assert.match(deployment, /not a real Orgo\/Hermes provisioning system yet/);
+assert.match(deployment, /ORGO_API_KEY/);
+assert.match(deployment, /HERMES_TEMPLATE_REF/);
+assert.match(deployment, /CREDENTIAL_VAULT_PROVIDER/);
+
+console.log('onboarding planner, provisioning bridge, model concierge boundary, blueprint review states, and doctrine guardrail are present.');

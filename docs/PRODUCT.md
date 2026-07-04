@@ -181,7 +181,11 @@ The additional Gemini video ingestion reinforced five product requirements:
 
 ## Phase 1 Hardening Doctrine
 
-The approved next milestone keeps Phase 2 paused. MinionMint must become production-real at the Minion Blueprint layer before virtual computers, swarms, broad autonomy, or computer-use are introduced.
+Phase 1 complete means the blueprint scaffold and doctrine pass are complete. It does not mean MinionMint can provision real Minions. The platform is not yet usable as an Orgo/Hermes provisioning system.
+
+The approved next milestone is the first real Minion provisioning path: Google OAuth, secure credential setup, an Orgo provider interface, Hermes template/config generation, workspace status, and a dashboard path to launch or open the Minion workspace once providers are configured.
+
+MinionMint must become production-real at the Minion Blueprint layer before virtual computers, swarms, broad autonomy, or computer-use are introduced.
 
 Phase 1 hardening requires:
 
@@ -192,4 +196,4 @@ Phase 1 hardening requires:
 - model-backed concierge generation through GPT-4.1 mini or GPT-4o mini when `OPENAI_API_KEY` is configured,
 - deterministic fallback for tests and cost control,
 - blueprint edit, refine, approve, and save states before anything is provisioned,
-- operations-board dashboard structure that previews status, mission, first review task, phone plan, email plan, controlled payment status, connected apps, credential plan, knowledge vault, memory rules, approval queue, owner takeover, observability, next action, last activity, first-week win, and owner review state.
+- operations-board dashboard structure that previews status, mission, first review task, phone plan, email plan, controlled payment status, connected apps, credential plan, knowledge vault, memory rules, approval queue, owner takeover, observability, next action, last activity, first-week win, owner review state, and provisioning readiness.

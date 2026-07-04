@@ -21,6 +21,7 @@ function Chrome({ children }: { children: React.ReactNode }) {
           <nav>
             <Link href="/onboarding">Onboarding</Link>
             <Link href="/dashboard">Dashboard</Link>
+            <Link href="/setup">Setup</Link>
             {hasRealClerk ? (
               <>
                 <SignedOut><SignInButton mode="modal"><button className="button secondary">Sign in</button></SignInButton></SignedOut>
