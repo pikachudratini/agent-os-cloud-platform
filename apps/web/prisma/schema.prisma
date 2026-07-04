@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MembershipRole {
+  owner
+  admin
+  member
+  viewer
+}
+
+enum WorkspaceStatus {
+  draft
+  active
+  paused
+}
+
+model Organization {
+  id          String       @id @default(uuid()) @db.Uuid
+  clerkOrgId  String?      @unique
+  name        String
+  slug        String       @unique
+  plan        String       @default("trial")
+  status      String       @default("active")
+  settings    Json         @default("{}")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  memberships Membership[]
+  workspaces  Workspace[]
+}
+
+model User {
+  id          String       @id @default(uuid()) @db.Uuid
+  clerkUserId String       @unique
+  email       String       @unique
+  name        String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  memberships Membership[]
+}
+
+model Membership {
+  id        String         @id @default(uuid()) @db.Uuid
+  orgId     String         @db.Uuid
+  userId    String         @db.Uuid
+  role      MembershipRole @default(owner)
+  createdAt DateTime       @default(now())
+  org       Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, userId])
+  @@index([userId])
+}
+
+model Workspace {
+  id              String          @id @default(uuid()) @db.Uuid
+  orgId           String          @db.Uuid
+  name            String
+  status          WorkspaceStatus @default(draft)
+  onboardingState Json            @default("{}")
+  agentSpec       Json            @default("{}")
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  org             Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  auditLogs       AuditLog[]
+
+  @@index([orgId])
+}
+
+model AuditLog {
+  id          String    @id @default(uuid()) @db.Uuid
+  orgId       String    @db.Uuid
+  actorType   String
+  actorId     String
+  action      String
+  targetType  String
+  targetId    String
+  metadata    Json      @default("{}")
+  createdAt   DateTime  @default(now())
+  workspaceId String?   @db.Uuid
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+
+  @@index([orgId, createdAt])
+}
+
+model UsageEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  orgId       String   @db.Uuid
+  workspaceId String?  @db.Uuid
+  kind        String
+  quantity    Decimal
+  unit        String
+  costUsd     Decimal  @default(0)
+  metadata    Json     @default("{}")
+  occurredAt  DateTime @default(now())
+
+  @@index([orgId, occurredAt])
+}

@@ -35,3 +35,7 @@ Each ledger task evidence entry must include command run, result or output summa
 - `npm test` validates `docs/LEDGER.md` contains required task fields and acceptance criteria.
 - GitHub Actions workflow runs install, lint, test, and build.
 - Playwright configuration is stubbed for future viewport testing, based on official Playwright configuration docs: https://playwright.dev/docs/test-configuration
+
+## Local Clerk fallback
+
+Local and CI builds can run without real Clerk credentials. Protected routes use a deterministic `local-demo-user` only when Clerk environment variables are absent. Production must configure real Clerk keys before going live.

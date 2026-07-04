@@ -12,7 +12,7 @@ The source packet says not to roll custom authentication and lists MFA-capable m
 
 ## Decision
 
-Use a managed auth provider for production. Clerk, Auth0, and WorkOS remain candidates until cost, SSO needs, and developer experience are compared. Custom auth is rejected.
+Use Clerk for Phase 1. Clerk is the fastest path for polished SaaS signup, hosted auth, and future organization/team accounts. Custom auth is rejected.
 
 ## Consequences
 

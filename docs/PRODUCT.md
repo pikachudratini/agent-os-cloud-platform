@@ -1,5 +1,8 @@
 # Product North Star
 
+Customer-facing name: **MinionMint**. Repository remains `agent-os-cloud-platform` until validation.
+
+
 A secure, browser-based, multi-tenant platform. A new user signs up and is greeted by an onboarding agent that has a friendly conversation to learn their goal, role, and what knowledge sources they can provide, offering sensible defaults so non-technical users are never overwhelmed. The platform then provisions a customized AI agent with its own memory, knowledge base, virtual computer environment, and communication channels, which the user can manage from desktop, tablet, or mobile browser.
 
 ## MVP Wedge
@@ -40,3 +43,7 @@ Deferred from MVP: phone numbers, email sending, multi-agent fleets, billing, an
 | Phase 2 | Agent provisioning and virtual computers | User can provision one agent, attach knowledge, chat, and run a managed-provider computer proof if approved. |
 | Phase 3 | Communication channels | Web chat is productionized. Email, SMS, and voice remain gated by compliance and approval mode. |
 | Phase 4 | Hardening and responsive QA | Security gates, tenant isolation tests, usage metering, responsive QA, and admin evidence are green. |
+
+## Deployment Domain Plan
+
+Prepare Vercel project naming for MinionMint.com. Keep DNS pending until Vercel gives exact records, then update Porkbun DNS for the apex/root domain and `www`. Verify `https://minionmint.com` and `https://www.minionmint.com` externally before calling the app live.

@@ -12,3 +12,6 @@ test-results/
 *.pem
 *.key
 .DS_Store
+
+apps/web/.data/
+*.tsbuildinfo

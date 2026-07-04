@@ -1,6 +1,9 @@
 # Agent OS Cloud Platform
 
-Secure browser-based platform scaffold for creating custom AI agents with memory, knowledge, virtual computer support, and communication channels.
+Customer-facing product name: **MinionMint**. Keep `agent-os-cloud-platform` as the internal repo and scaffold name until the first live deploy is stable.
+
+
+MinionMint is a secure browser-based platform scaffold for creating custom AI agents with memory, knowledge, virtual computer support, and communication channels.
 
 ## Current status
 
