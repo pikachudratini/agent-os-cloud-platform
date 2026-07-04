@@ -181,9 +181,9 @@ The additional Gemini video ingestion reinforced five product requirements:
 
 ## Phase 1 Hardening Doctrine
 
-Phase 1 complete means the blueprint scaffold and doctrine pass are complete. It does not mean MinionMint can provision real Minions. The platform is not yet usable as an Orgo/Hermes provisioning system.
+Phase 1 complete means the blueprint scaffold and doctrine pass are complete. It does not mean MinionMint can provision real Minions. The platform is not yet usable as a provider-neutral workspace provisioning system.
 
-The approved next milestone is the first real Minion provisioning path: Google OAuth, secure credential setup, an Orgo provider interface, Hermes template/config generation, workspace status, and a dashboard path to launch or open the Minion workspace once providers are configured.
+The approved next milestone is the first real Minion provisioning path: Google OAuth, secure credential setup, a pluggable ComputerProvider or WorkspaceProvider layer, Hermes template/config generation, workspace status, and a dashboard path to launch or open the Minion workspace once providers are configured. Orgo can remain an optional adapter and reference pattern, but MinionMint should not depend on Orgo as the required foundation.
 
 MinionMint must become production-real at the Minion Blueprint layer before virtual computers, swarms, broad autonomy, or computer-use are introduced.
 

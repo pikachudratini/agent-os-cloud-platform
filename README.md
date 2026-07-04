@@ -10,7 +10,9 @@ This is not intended to be a generic chatbot builder. The product starts with di
 
 **Phase 1 complete does not mean MinionMint can provision real Minions yet.**
 
-The current app is a Phase 1 blueprint scaffold and doctrine pass. It can generate, refine, approve, save, and review a Minion Blueprint. It previews planned operating identity surfaces on the dashboard. It does **not** yet create a live Orgo computer, install or launch Hermes inside that workspace, issue phone numbers, create email inboxes, issue payment cards, connect apps, or store user provider credentials through a production credential vault.
+The current app is a Phase 1 blueprint scaffold and doctrine pass. It can generate, refine, approve, save, and review a Minion Blueprint. It previews planned operating identity surfaces on the dashboard. It does **not** yet create a live workspace, install or launch Hermes inside that workspace, issue phone numbers, create email inboxes, issue payment cards, connect apps, or store user provider credentials through a production credential vault.
+
+MinionMint is provider-neutral. The first provisioning bridge defines how a Minion Blueprint can become a launched Minion workspace. The cloud-computer provider is pluggable. Orgo-style workspaces are the reference pattern, but Orgo is not required unless the user chooses the Orgo adapter.
 
 Current Phase 1 includes:
 
@@ -19,9 +21,9 @@ Current Phase 1 includes:
 - Prisma/Postgres schema and local file fallback.
 - OpenAI-backed concierge when `OPENAI_API_KEY` is configured, with deterministic fallback otherwise.
 - Dashboard preview for phone, email, payment, apps, credentials, knowledge vault, observability, owner takeover, and approval rails.
-- Provisioning provider interface and status API that clearly report whether real provisioning is configured.
+- Provider-neutral provisioning interface and status API that clearly report whether real provisioning is configured.
 
-Next milestone: **First real Minion provisioning path.** That milestone must connect Google OAuth, secure credential setup, Orgo workspace creation or provider stub, Hermes template generation, per-Minion config, dashboard workspace status, and a launch/open workspace path.
+Next milestone: **First real Minion provisioning path.** That milestone must connect Google OAuth, secure credential setup, a selected workspace provider, Hermes template generation, per-Minion config, dashboard workspace status, and a launch/open workspace path. Orgo can be one optional fast-path adapter, not the foundation MinionMint depends on.
 
 ## How to actually use this
 
@@ -31,10 +33,10 @@ Use this mode to verify the UI and blueprint flow only.
 
 Required services:
 
-- No Clerk required.
-- No Postgres required.
-- No OpenAI required.
-- No Orgo or Hermes provisioning required.
+- No real auth required.
+- No database required.
+- No model provider required.
+- No credentials or workspace provider required.
 
 Behavior:
 
@@ -59,14 +61,14 @@ Required services:
 - Clerk configured.
 - Google OAuth enabled in Clerk.
 - Managed Postgres `DATABASE_URL` configured.
-- `OPENAI_API_KEY` configured if model-backed concierge generation is desired.
+- OpenAI or selected model provider configured if model-backed concierge generation is desired.
 
 Behavior:
 
 - User can sign in.
 - User can generate, refine, approve, and save a Minion Blueprint.
 - Dashboard shows saved blueprint and planned operating identity surfaces.
-- Still cannot provision a real Orgo/Hermes Minion.
+- Still cannot provision a real Minion workspace.
 
 Clerk Google OAuth setup:
 
@@ -80,28 +82,58 @@ Clerk Google OAuth setup:
 
 This is the next product milestone. It is not live-complete in this repo yet.
 
-Required services:
+Required provider-neutral services:
 
-- `ORGO_API_KEY` for Orgo-style cloud computer provisioning.
-- `HERMES_TEMPLATE_REF` for the approved Hermes agent template or image.
-- `CREDENTIAL_VAULT_PROVIDER` for secure credential storage.
-- Optional `AGENTPHONE_API_KEY`, `AGENTMAIL_API_KEY`, `AGENTCARD_API_KEY`, `COMPOSIO_API_KEY`, and `LATITUDE_API_KEY`.
+- `MINIONMINT_COMPUTER_PROVIDER=local_stub | self_hosted | orgo | e2b | browserbase | scrapybara | daytona | modal`
+- `MINIONMINT_HERMES_TEMPLATE_REF` for the approved Hermes agent template or base image.
+- `MINIONMINT_CREDENTIAL_VAULT_PROVIDER` for secure credential storage.
+- Optional `MINIONMINT_WORKSPACE_REGION`.
+- Optional `MINIONMINT_WORKSPACE_BASE_IMAGE`.
+
+Provider-specific keys are optional and namespaced. They are required only when their adapter is selected:
+
+- `ORGO_API_KEY` only when `MINIONMINT_COMPUTER_PROVIDER=orgo`.
+- `E2B_API_KEY` only when `MINIONMINT_COMPUTER_PROVIDER=e2b`.
+- `BROWSERBASE_API_KEY` only when `MINIONMINT_COMPUTER_PROVIDER=browserbase`.
+- `SCRAPYBARA_API_KEY` only when `MINIONMINT_COMPUTER_PROVIDER=scrapybara`.
+
+Owned and self-hosted paths should define provider requirements instead of pretending an Orgo key is universal:
+
+- VPS or server pool config.
+- Container or VM runtime.
+- Base image with Hermes installed.
+- Per-Minion workspace directory or volume.
+- Per-Minion Hermes profile and config.
+- Secure credential storage.
+- Public access or remote desktop path if needed.
+- Process supervisor.
+- Logging and observability.
+- Owner stop and takeover controls.
+
+Optional identity surface providers:
+
+- `AGENTPHONE_API_KEY`
+- `AGENTMAIL_API_KEY`
+- `AGENTCARD_API_KEY`
+- `COMPOSIO_API_KEY`
+- `LATITUDE_API_KEY`
 
 Intended behavior:
 
 - User approves a Minion Blueprint.
 - User provides provider credentials through a secure setup flow.
 - MinionMint stores encrypted credential references, not raw keys in docs, client code, screenshots, or blueprint text.
-- MinionMint creates or prepares an Orgo-style workspace.
+- MinionMint creates or prepares a cloud-computer-style workspace through the selected adapter.
 - MinionMint generates per-Minion Hermes config from the blueprint.
 - Dashboard shows whether phone, email, payment, apps, memory, observability, and workspace are disabled, planned, configured, or connected.
 - Dashboard exposes “Open Minion workspace” or “Launch Minion” only after providers are actually configured.
 
 Current provisioning status:
 
-- A provider interface exists in `apps/web/app/lib/provisioning.ts`.
-- `/api/provisioning` reports readiness and returns a clear not-configured response when required providers are missing.
-- Live Orgo/Hermes API calls are intentionally not implemented yet.
+- A provider-neutral interface exists in `apps/web/app/lib/provisioning.ts`.
+- `/api/provisioning` reports readiness and returns a clear not-configured response when provider-neutral requirements are missing.
+- Live provider calls are intentionally not implemented yet.
+- Orgo remains an optional adapter and reference model, not a required dependency.
 
 ## Commands
 

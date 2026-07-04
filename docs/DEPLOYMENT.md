@@ -1,10 +1,12 @@
 # MinionMint Deployment and Provisioning Modes
 
-This document separates what works today from the provisioning system MinionMint is intended to become.
+This document separates what works today from the provider-neutral provisioning system MinionMint is intended to become.
 
 ## Status summary
 
-Phase 1 is a blueprint product. It is not a real Orgo/Hermes provisioning system yet.
+Phase 1 is a blueprint product. It is not a real workspace provisioning system yet.
+
+MinionMint owns the product, user accounts, dashboard, Minion configuration, credential setup, provisioning layer, and workspace lifecycle. Cloud-computer providers are adapters behind MinionMint. Orgo-style workspaces are a useful reference pattern, and Orgo can remain an optional managed provider, but MinionMint is not an Orgo wrapper.
 
 Current app can:
 
@@ -12,12 +14,12 @@ Current app can:
 - run in production Phase 1 mode with Clerk, Postgres, and optional OpenAI,
 - create, refine, approve, save, and review Minion Blueprints,
 - preview planned identity surfaces for phone, email, payment, apps, credentials, workspace, knowledge vault, observability, and owner takeover,
-- report provisioning readiness through `/api/provisioning`.
+- report provider-neutral provisioning readiness through `/api/provisioning`.
 
 Current app cannot yet:
 
-- create a real Orgo computer,
-- install or launch Hermes in that computer,
+- create a real workspace through any provider adapter,
+- install or launch Hermes in that workspace,
 - create a live phone number or SMS/iMessage channel,
 - create a live email inbox,
 - issue a payment card,
@@ -82,21 +84,32 @@ Capabilities:
 
 Limitations:
 
-- still no real Orgo/Hermes Minion provisioning.
+- still no real Minion workspace provisioning.
 
 ## Tier 3: Provisioning mode
 
-Purpose: bridge from approved Minion Blueprint to a real Minion workspace.
+Purpose: bridge from an approved Minion Blueprint to a real Minion workspace through a selected provider adapter.
 
-Required environment:
+Provider-neutral environment:
 
 ```bash
-ORGO_API_KEY=...
-HERMES_TEMPLATE_REF=...
-CREDENTIAL_VAULT_PROVIDER=...
+MINIONMINT_COMPUTER_PROVIDER=local_stub | self_hosted | orgo | e2b | browserbase | scrapybara | daytona | modal
+MINIONMINT_HERMES_TEMPLATE_REF=...
+MINIONMINT_CREDENTIAL_VAULT_PROVIDER=...
+MINIONMINT_WORKSPACE_REGION=... # optional
+MINIONMINT_WORKSPACE_BASE_IMAGE=... # optional
 ```
 
-Optional environment:
+Provider-specific environment:
+
+```bash
+ORGO_API_KEY=... # only when MINIONMINT_COMPUTER_PROVIDER=orgo
+E2B_API_KEY=... # only when MINIONMINT_COMPUTER_PROVIDER=e2b
+BROWSERBASE_API_KEY=... # only when MINIONMINT_COMPUTER_PROVIDER=browserbase
+SCRAPYBARA_API_KEY=... # only when MINIONMINT_COMPUTER_PROVIDER=scrapybara
+```
+
+Optional identity surface providers:
 
 ```bash
 AGENTPHONE_API_KEY=...
@@ -106,10 +119,23 @@ COMPOSIO_API_KEY=...
 LATITUDE_API_KEY=...
 ```
 
+Owned or self-hosted provider requirements:
+
+- VPS or server pool config.
+- Container or VM runtime.
+- Base image with Hermes installed.
+- Per-Minion workspace directory or volume.
+- Per-Minion Hermes profile and config.
+- Secure credential storage.
+- Public access or remote desktop path if needed.
+- Process supervisor.
+- Logging and observability.
+- Owner stop and takeover controls.
+
 Required implementation before this tier is genuinely live:
 
 1. Secure credential setup flow that writes encrypted credential references only.
-2. Orgo provider implementation behind the provisioning interface.
+2. Provider adapters behind the `ComputerProvider` or `WorkspaceProvider` interface.
 3. Hermes template generation and launch code.
 4. Per-Minion Hermes config generated from the approved blueprint.
 5. Workspace status persistence.
@@ -118,10 +144,12 @@ Required implementation before this tier is genuinely live:
 
 Current implementation:
 
-- `apps/web/app/lib/provisioning.ts` defines the provider interface, readiness model, Hermes config preview, and safe stub provider.
+- `apps/web/app/lib/provisioning.ts` defines `ComputerProvider`, `WorkspaceProvider`, `HermesTemplateProvider`, `CredentialVaultProvider`, and `MinionRuntimeProvider` contracts.
+- Core methods include `checkReadiness`, `prepareWorkspace`, `launchWorkspace`, `stopWorkspace`, `getWorkspaceStatus`, `getAccessUrl`, `attachCredentials`, and `renderHermesConfig`.
 - `apps/web/app/api/provisioning/route.ts` exposes readiness and prepare endpoints.
-- Dashboard displays provisioning mode and blocks launch when providers are missing.
-- Live Orgo/Hermes API calls are not implemented yet.
+- Dashboard displays the selected provider and blocks launch when provider-neutral requirements are missing.
+- Live provider calls are not implemented yet.
+- Orgo is documented as an optional adapter and example managed computer provider, not a required foundation.
 
 ## Safety rules
 

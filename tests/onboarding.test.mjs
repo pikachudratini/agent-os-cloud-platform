@@ -44,12 +44,22 @@ assert.match(guardrail, /AgentMail-style/);
 assert.match(guardrail, /AgentCard-style/);
 
 const provisioning = readFileSync('apps/web/app/lib/provisioning.ts', 'utf8');
-assert.match(provisioning, /MinionProvisioningProvider/);
+assert.match(provisioning, /ComputerProvider/);
+assert.match(provisioning, /WorkspaceProvider/);
+assert.match(provisioning, /HermesTemplateProvider/);
+assert.match(provisioning, /CredentialVaultProvider/);
+assert.match(provisioning, /MinionRuntimeProvider/);
+assert.match(provisioning, /MINIONMINT_COMPUTER_PROVIDER/);
+assert.match(provisioning, /MINIONMINT_HERMES_TEMPLATE_REF/);
+assert.match(provisioning, /MINIONMINT_CREDENTIAL_VAULT_PROVIDER/);
+assert.match(provisioning, /self_hosted/);
 assert.match(provisioning, /ORGO_API_KEY/);
-assert.match(provisioning, /HERMES_TEMPLATE_REF/);
-assert.match(provisioning, /CREDENTIAL_VAULT_PROVIDER/);
-assert.match(provisioning, /StubMinionProvisioningProvider/);
+assert.match(provisioning, /E2B_API_KEY/);
+assert.match(provisioning, /BROWSERBASE_API_KEY/);
+assert.match(provisioning, /SCRAPYBARA_API_KEY/);
 assert.match(provisioning, /buildHermesConfigPreview/);
+assert.match(provisioning, /renderHermesConfig/);
+assert.doesNotMatch(provisioning, /const requiredProvisioningEnv = \['ORGO_API_KEY'/);
 
 const provisioningRoute = readFileSync('apps/web/app/api/provisioning/route.ts', 'utf8');
 assert.match(provisioningRoute, /getMinionProvisioningProvider/);
@@ -59,20 +69,30 @@ const setupPage = readFileSync('apps/web/app/setup/page.tsx', 'utf8');
 assert.match(setupPage, /Local demo mode/);
 assert.match(setupPage, /Production Phase 1 mode/);
 assert.match(setupPage, /Provisioning mode/);
+assert.match(setupPage, /Computer provider/);
+assert.match(setupPage, /ORGO_API_KEY:<\/strong> required only when/);
 assert.match(setupPage, /Do not paste provider keys/);
+
+const dashboard = readFileSync('apps/web/app/dashboard/page.tsx', 'utf8');
+assert.match(dashboard, /Computer provider/);
+assert.match(dashboard, /Orgo is optional, not mandatory/);
 
 const readme = readFileSync('README.md', 'utf8');
 assert.match(readme, /Phase 1 complete does not mean MinionMint can provision real Minions yet/);
+assert.match(readme, /MinionMint is provider-neutral/);
 assert.match(readme, /Local demo mode/);
 assert.match(readme, /Production Phase 1 mode/);
 assert.match(readme, /Provisioning mode/);
 assert.match(readme, /Google OAuth enabled in Clerk/);
-assert.match(readme, /Live Orgo\/Hermes API calls are intentionally not implemented yet/);
+assert.match(readme, /ORGO_API_KEY` only when `MINIONMINT_COMPUTER_PROVIDER=orgo/);
+assert.doesNotMatch(readme, /`ORGO_API_KEY` for Orgo-style cloud computer provisioning/);
 
 const deployment = readFileSync('docs/DEPLOYMENT.md', 'utf8');
-assert.match(deployment, /not a real Orgo\/Hermes provisioning system yet/);
-assert.match(deployment, /ORGO_API_KEY/);
-assert.match(deployment, /HERMES_TEMPLATE_REF/);
-assert.match(deployment, /CREDENTIAL_VAULT_PROVIDER/);
+assert.match(deployment, /provider-neutral provisioning system/);
+assert.match(deployment, /MinionMint is not an Orgo wrapper/);
+assert.match(deployment, /ComputerProvider/);
+assert.match(deployment, /WorkspaceProvider/);
+assert.match(deployment, /ORGO_API_KEY=.*only when MINIONMINT_COMPUTER_PROVIDER=orgo/);
+assert.match(deployment, /Owned or self-hosted provider requirements/);
 
-console.log('onboarding planner, provisioning bridge, model concierge boundary, blueprint review states, and doctrine guardrail are present.');
+console.log('onboarding planner, provider-neutral provisioning bridge, model concierge boundary, blueprint review states, and doctrine guardrail are present.');

@@ -32,7 +32,7 @@ export default async function DashboardPage() {
             </div>
             <h2>{plan.projectName}</h2>
             <p>{plan.summary}</p>
-            <div className="status-strip"><span>Status: {status}</span><span>Storage: {plan.persistenceMode}</span><span>Provisioning: {provisioning.mode.replaceAll('_', ' ')}</span><span>Launch: {provisioning.canProvisionRealMinion ? 'provider configured' : 'not configured'}</span><span>Last: {plan.lastActivity}</span></div>
+            <div className="status-strip"><span>Status: {status}</span><span>Storage: {plan.persistenceMode}</span><span>Provisioning: {provisioning.mode.replaceAll('_', ' ')}</span><span>Launch: {provisioning.canProvisionRealMinion ? 'provider configured' : 'provider not configured'}</span><span>Last: {plan.lastActivity}</span></div>
           </article>
           <article className="card stack"><h2>Mission control</h2><p><strong>Mission:</strong> {plan.mission}</p><p><strong>First review task:</strong> {plan.firstWorkflow}</p><p><strong>First-week win:</strong> {plan.firstWeekWin}</p></article>
           <article className="card stack"><h2>Communication identity</h2><p><strong>Phone:</strong> {statusLabel(plan.phonePlan?.status)}. {plan.phonePlan?.summary}</p><p><strong>Email:</strong> {statusLabel(plan.emailPlan?.status)}. {plan.emailPlan?.summary}</p><p>{plan.communicationIdentity}</p></article>
@@ -42,7 +42,7 @@ export default async function DashboardPage() {
           <article className="card stack"><h2>Approvals</h2><ul>{(plan.approvalRails ?? plan.approvalQueue).map((rail) => <li key={rail}>{rail}</li>)}</ul><p>Required before send, spend, submit, book, modify, or sensitive account access.</p></article>
           <article className="card stack"><h2>Workspace and takeover</h2><p>{plan.workstationPlan}</p><p><strong>Owner takeover:</strong> {plan.ownerTakeoverPlan}</p></article>
           <article className="card stack"><h2>Observability</h2><p>{plan.observabilityPlan}</p><p><strong>Generation:</strong> {plan.generationMode.replaceAll('_', ' ')}</p></article>
-          <article className="card stack wide-card"><h2>Provisioning bridge</h2><p><strong>Current mode:</strong> {provisioning.mode.replaceAll('_', ' ')}</p><p>{provisioning.launchBlockedReason}</p><div className="form-row action-row"><Link href="/setup" className="button secondary">Configure providers</Link><button disabled>{provisioning.launchLabel}</button></div><p className="error-note">MinionMint cannot launch a real Orgo/Hermes workspace until provisioning mode is configured and the live provider calls are implemented.</p></article>
+          <article className="card stack wide-card"><h2>Provisioning bridge</h2><p><strong>Current mode:</strong> {provisioning.mode.replaceAll('_', ' ')}</p><p><strong>Computer provider:</strong> {provisioning.providerLabel}</p><p>{provisioning.launchBlockedReason}</p><div className="form-row action-row"><Link href="/setup" className="button secondary">Configure providers</Link><button disabled>{provisioning.launchLabel}</button></div><p className="error-note">MinionMint cannot launch a real workspace until a pluggable computer provider, Hermes template, credential vault, and live adapter calls are configured. Orgo is optional, not mandatory.</p></article>
           <article className="card stack wide-card"><h2>Next action</h2><p>{plan.nextAction}</p><Link href="/onboarding" className="button secondary">Refine blueprint</Link></article>
         </div>
       ) : (
