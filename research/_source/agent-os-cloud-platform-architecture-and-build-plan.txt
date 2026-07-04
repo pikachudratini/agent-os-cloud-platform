@@ -1,0 +1,827 @@
+Project: Agent OS Cloud Platform
+Date: 2026-07-03
+Source: Claude Fable 5 via KIE.ai, coordinated by Hermy
+Original user brief: /root/.hermes/cache/documents/doc_02914f365ad9_orgo_Fable_project.txt
+Raw Fable artifacts saved under: /root/fable-vault/raw/
+Reuse when: planning AI-agent platform with virtual computers, agent OS/brain, user onboarding, tenant security, communications, and Gemini YouTube ingestion.
+
+
+
+===== PART 1: 01 PRODUCT ARCHITECTURE =====
+
+# Agent Platform Architecture Document, Part 1
+
+## 1. Recommended Project Name
+
+**Primary recommendation: Cohort**
+
+Short, memorable, and it describes the product: a group of agents working for you. The .ai and .dev domains for compound variants (getcohort, cohorthq) are commonly available.
+
+**10 alternates:**
+
+1. **Hivemind** - evokes coordinated agents with shared memory
+2. **Crewbase** - agents as a crew, base as the platform
+3. **Minted** - agents "minted" in one click
+4. **Spinup** - literal description of the core action
+5. **Attaché** - a personal agent assigned to your mission
+6. **Fleetform** - you form and manage a fleet of agents
+7. **Golem** - a constructed worker brought to life with instructions
+8. **Deskmate** - each agent has its own desk (computer)
+9. **Kindred** - agents customized to feel like they belong to you
+10. **Opsling** - operations plus sling, fast deployment of workers
+
+Pick something you can say out loud to a small business owner without explaining it. Cohort, Crewbase, and Deskmate pass that test best.
+
+## 2. Plain-English Product Definition
+
+Cohort is a website where anyone can create a custom AI employee in minutes. When a user signs up, a friendly onboarding agent interviews them about what they need. Based on that conversation, the platform spins up a new agent with:
+
+- **A brain**: a configured LLM with a role, personality, goals, and rules
+- **Memory**: it remembers past conversations and facts about the user's business
+- **Knowledge**: documents, websites, and files the user points it to
+- **A computer**: its own virtual desktop where it can browse, use apps, and manage files
+- **Communication channels**: its own email address, phone number for calls and SMS, and chat
+
+The user talks to their agents from any browser on phone, tablet, or desktop. One account can run many agents. Everything is isolated per user and per agent so no one's data leaks anywhere.
+
+One sentence version: **"Hire a custom AI employee with its own computer, phone, and email in five minutes."**
+
+## 3. MVP Wedge
+
+Do not build all of the above first. The wedge that proves the product:
+
+**MVP scope (what you build first):**
+
+1. Sign up / log in
+2. Onboarding conversation with a "concierge agent" that asks 5-8 adaptive questions (goal, industry, tasks, knowledge sources, tone) and never assumes technical background. It offers defaults: "Most people in your situation choose X, want that?"
+3. From that conversation, the platform generates an **agent spec** (a structured JSON config: role, system prompt, tools, knowledge sources)
+4. Spin up one agent per user with: chat interface, persistent memory, and one knowledge base built from uploaded files or a URL
+5. Responsive web app QAed on mobile, tablet, desktop
+
+**Explicitly deferred from MVP:** virtual computers, phone numbers, email sending, multi-agent fleets, billing. These come in phases 2-4. The wedge is the magic onboarding-to-working-agent flow. If that flow is not delightful, nothing else matters.
+
+## 4. Phases: Prototype to Production
+
+**Phase 0 - Research ingestion (week 1)**
+Gemini watches both YouTube channels, produces a dated feature/technique knowledge base (prompt for this comes in a later part of this document). Output: a features-and-evolution markdown corpus your coding agent references during builds.
+
+**Phase 1 - Prototype (weeks 1-3)**
+Single-user local prototype. Onboarding conversation, agent spec generation, chat with one agent, file upload to a basic RAG knowledge base. SQLite or Postgres, one server. Goal: you personally use it daily.
+
+**Phase 2 - Multi-tenant MVP (weeks 3-8)**
+Auth (use a managed provider like Clerk or Auth0, do not roll your own), per-user data isolation, hosted deployment, mobile/tablet/desktop QA pass, basic rate limiting, agent memory that persists across sessions. Invite 5-10 test users.
+
+**Phase 3 - Communication channels (weeks 8-14)**
+Email per agent (inbound and outbound via a provider like Resend or SendGrid with subdomain addressing, e.g. agentname@agents.yourdomain.com), SMS and voice via Twilio or Telnyx, unified inbox in the UI. This phase has real abuse risk, so it ships with human-approval mode on by default: agents draft, users approve sends.
+
+**Phase 4 - Virtual computers (weeks 14-20)**
+Integrate a rented computer-use provider (see section 7). Agents get an on-demand desktop for tasks that need it. Screen streaming into the UI so users can watch their agent work.
+
+**Phase 5 - Production hardening (weeks 20-26)**
+Billing (Stripe), usage metering per agent, audit logs, admin dashboard, backups, incident alerting, penetration test, terms of service, and a proper QA regression suite across the three device classes.
+
+Timelines assume an AI coding agent working near daily with you reviewing. Expect slippage; that is normal.
+
+## 5. High-Level Architecture
+
+```
+[Browser: responsive web app, React/Next.js]
+        |
+[API Gateway / Backend: Node or Python, REST + WebSockets]
+        |
+  +-----+---------------------------+------------------+
+  |               |                 |                  |
+[Auth]      [Agent Orchestrator] [Knowledge Service] [Comms Service]
+(Clerk)      - agent specs        - ingestion         - email in/out
+             - conversation loop  - chunking/embed    - SMS/voice
+             - tool routing       - vector search     - webhooks
+             - memory read/write  (pgvector)          (Twilio/Resend)
+        |
+[Postgres: users, agents, messages, memories, configs]
+[Object storage: uploaded files, transcripts]  (S3/R2)
+[Queue: background jobs, ingestion, long tasks] (BullMQ or Celery)
+        |
+[Virtual Computer Provider: Orgo or similar, per-agent on demand]
+[LLM providers: Anthropic / OpenAI / Gemini via a model router]
+```
+
+Key decisions:
+
+- **One backend monolith first.** Do not do microservices. A single Next.js app with API routes plus a worker process is enough through Phase 3.
+- **Postgres with pgvector** covers relational data and embeddings in one database. Avoid adding a separate vector DB until scale demands it.
+- **WebSockets or SSE** for streaming agent replies and, later, streaming the virtual computer screen.
+- **Model router layer** so agents can run on Claude, GPT, or Gemini per config. This matches the "bring your own model" pattern from the Orgo world and protects you from provider outages and price changes.
+
+## 6. Agent Brain and OS Design
+
+Think of each agent as three layers:
+
+**Layer 1 - Identity (the spec).** A JSON document generated by onboarding:
+
+```json
+{
+  "name": "Riley",
+  "role": "Customer support agent for Andrew's Plumbing",
+  "system_prompt": "...",
+  "model": "claude-sonnet",
+  "tone": "warm, brief",
+  "tools": ["knowledge_search", "email_draft", "calendar"],
+  "guardrails": ["never quote prices", "escalate refunds to owner"],
+  "knowledge_sources": ["kb_123"],
+  "approval_mode": "drafts_require_approval"
+}
+```
+
+Everything about an agent is data, not code. New agent equals new row, which is what makes one-click spinup possible.
+
+**Layer 2 - Memory (the brain).** Three tiers:
+
+- **Working memory**: current conversation context window
+- **Episodic memory**: summaries of past sessions, written by a background job after each conversation and retrieved by relevance
+- **Semantic memory / knowledge base**: the user's documents and facts, chunked, embedded, retrieved via vector plus keyword hybrid search
+
+Also maintain a **structured facts table** per agent (key facts like "owner's name is Andrew", "business hours 9-5") because RAG alone is unreliable for hard facts.
+
+**Layer 3 - The agent OS (the loop).** This is the orchestrator: receive input from any channel, load spec plus relevant memories, run the reasoning loop, call tools (search knowledge, draft email, use computer), write new memories, respond. Channels (chat, email, SMS, voice) are just different input/output adapters into the same loop. This is the "operating system for agents" concept made concrete: a scheduler plus tool bus plus memory manager around a model call.
+
+## 7. Virtual Computer Strategy: Build vs Buy
+
+**Buy. Do not build.** Building your own VM orchestration (Firecracker microVMs, snapshotting, sub-second boot, screen streaming, security isolation) is a multi-engineer, multi-year infrastructure company on its own. That is literally what Orgo-style providers are.
+
+Recommendation:
+
+- **Phase 4: integrate a provider** such as Orgo (sub-500ms boot, full desktop with browser/terminal/files, works with Claude/GPT/Gemini, API fleet management) or comparable options like E2B, Scrapybara, or Browserbase (browser-only, cheaper for browsing tasks). Abstract it behind your own `ComputerProvider` interface so you can swap vendors.
+- **Cost control**: computers are on-demand only. Agent requests a computer for a task, it boots, does work, snapshots state if needed, shuts down. Never leave desktops idling per agent per user; that would destroy your margins.
+- **Two tiers**: browser-only sandbox (cheap, covers 80% of tasks like research and form filling) and full desktop (expensive, for app-based work).
+- **Revisit build-vs-buy only** if you reach thousands of daily computer-hours and provider costs dominate revenue.
+
+## 8. Orgo-Style Integrations
+
+Patterns to adopt from the computer-use-agent ecosystem your source channels cover:
+
+- **Fast boot as UX**: user clicks "watch my agent work" and a live desktop appears in under a second. Boot speed is a feature, expose it.
+- **Model-agnostic computer control**: the computer layer accepts click/type/screenshot commands from whichever model the agent runs on.
+- **Fleet API**: your orchestrator manages many computers programmatically (start, stop, snapshot, assign to agent), mirroring the manage-fleet-from-API pattern.
+- **Rotating credentials and encrypted sessions**: never store user passwords in agent memory; use a secrets vault the computer session can request scoped credentials from.
+- **Live screen streaming plus takeover**: user can watch the agent's screen and grab the mouse to help, which builds trust and handles edge cases (logins, CAPTCHAs).
+- **Persistent agent workspaces**: snapshot the agent's disk so its files and browser profile survive between sessions without paying for idle uptime.
+
+## 9. Isolation and Security Basics
+
+Non-negotiable from Phase 2 onward:
+
+- **Tenant isolation**: every table has a `user_id`, every query is scoped, enforced with Postgres row-level security, not just application code.
+- **Per-agent isolation**: agents cannot read other agents' memories or knowledge bases even within one account unless explicitly shared.
+- **Managed auth** with MFA support; sessions via secure httpOnly cookies.
+- **Secrets management**: API keys and user credentials in a vault (e.g. cloud KMS), never in prompts, logs, or agent memory.
+- **Prompt injection defense**: everything an agent reads from email, web pages, or documents is untrusted input. Sanitize, sandbox tool permissions per agent, and require human approval for irreversible actions (sending money, deleting data, external sends) by default.
+- **Outbound comms abuse controls**: rate limits per agent, content policy checks, verified sender domains, opt-out handling for SMS (legally required), and a kill switch per agent and per account.
+- **Computer sandboxing**: virtual computers have no network path to your backend internals; they get scoped, expiring tokens only.
+- **Audit log**: every agent action (message sent, file read, tool call, computer command) is logged immutably per tenant.
+- **Encryption**: TLS everywhere, encryption at rest for files and database.
+
+## 10. Major Risks
+
+1. **Scope collapse.** This is honestly 4-5 products (agent builder, RAG platform, comms hub, computer-use orchestration, multi-tenant SaaS). Mitigation: ruthless phase discipline; do not start Phase N+1 until Phase N has real users.
+2. **AI-coded security holes.** GPT 5.5 will happily ship auth bugs. Mitigation: security review checklist per phase, managed auth provider, penetration test before real customer data, and never let the coding agent invent crypto or session handling.
+3. **Prompt injection and agent abuse.** An agent with email, phone, and a computer is a spam and fraud machine if hijacked. Mitigation: approval-by-default, rate limits, audit logs. Take this one seriously; it can kill the business legally.
+4. **Unit economics.** LLM tokens plus phone numbers plus virtual computers per user can exceed subscription revenue. Mitigation: meter everything from day one, on-demand computers only, usage caps per plan.
+5. **Provider dependency.** Orgo-style vendors, Twilio, and model APIs can change pricing or shut down. Mitigation: abstraction layers (ComputerProvider, ModelRouter, CommsProvider) so swaps are config changes.
+6. **YouTube-derived knowledge drift.** The channels describe what is possible now; APIs shown in videos change fast. Mitigation: your Gemini knowledge base logs publish dates, and the coding agent verifies against current official docs before implementing anything from a video.
+7. **Onboarding is the product.** If the concierge conversation confuses non-technical users, they exit, exactly as you predicted. Mitigation: user-test the onboarding flow with 5 real non-technical people in Phase 2 before building anything else.
+8. **Solo founder plus AI agent maintenance load.** Every feature you ship, you must operate. Mitigation: managed services everywhere (auth, email, telephony, computers, hosting), boring stack (Next.js, Postgres), and monitoring/alerts from Phase 2.
+
+End of Part 1.
+
+
+===== PART 2: 02 INGESTION AND CODING PROMPTS =====
+
+# Part 2: Knowledge Ingestion Architecture and Build Prompts
+
+## 2.1 Knowledge Ingestion Architecture Overview
+
+The goal of ingestion is not "notes about videos." The goal is a structured, queryable research corpus that GPT 5.5 can consume later without re-watching anything. Structure it as three layers:
+
+**Layer 1: Raw video records.** One JSON file per video, produced by Gemini, following a strict schema (defined below). Filename convention: `{channel_slug}/{YYYY-MM-DD}_{video_slug}.json`. The publication date lives in both the filename and the record so sorting and evolution analysis are trivial.
+
+**Layer 2: Channel synthesis documents.** After all videos from a channel are processed, Gemini produces one evolution timeline per channel plus a consolidated feature inventory. These are Markdown files: `{channel_slug}/_timeline.md` and `{channel_slug}/_features.md`.
+
+**Layer 3: Cross-channel synthesis.** One document that merges both channels: shared concepts, contradictions, deprecated approaches, and a "current best practice as of latest videos" summary. File: `_synthesis/current_state.md` plus `_synthesis/contradictions.md`.
+
+Recommended folder structure:
+
+```
+/research
+  /eric-michaud
+    2026-05-14_obsidian-ai-vault.json
+    ...
+    _timeline.md
+    _features.md
+  /nick-vasiles
+    ...
+    _timeline.md
+    _features.md
+  /_synthesis
+    current_state.md
+    contradictions.md
+    feature_matrix.md
+/build
+  (Codex works here, defined in 2.4)
+```
+
+**Processing order matters.** Process each channel oldest to newest. Recency weighting happens at synthesis time, not by skipping old videos. Old videos establish vocabulary and show which ideas were abandoned, which is exactly the signal that prevents your agent from building deprecated patterns.
+
+**Practical constraint to plan for:** Gemini can analyze YouTube videos by URL, but there are per-request length and daily quota limits depending on your tier. Batch videos, run oldest first, and expect this ingestion phase to take multiple sessions. Do not let the agent "summarize the channel from memory." Every record must come from an actual video analysis call with the URL in the prompt.
+
+---
+
+## 2.2 Gemini Prompt A: Per-Video Ingestion
+
+Use this prompt once per video. Replace the bracketed values each time.
+
+```
+You are a technical research analyst building a structured knowledge base. Analyze this YouTube video carefully and completely: [VIDEO_URL]
+
+Channel: [CHANNEL_NAME]
+Your output will be machine-read later, so respond with a single valid JSON object and nothing else. No preamble, no Markdown fences.
+
+Use exactly this schema:
+
+{
+  "video_url": "",
+  "channel": "",
+  "title": "",
+  "published_date": "YYYY-MM-DD",
+  "duration_minutes": 0,
+  "one_line_summary": "",
+  "detailed_summary": "3 to 6 paragraphs covering what was demonstrated or taught",
+  "core_concepts": ["named concepts, patterns, or mental models introduced or used"],
+  "tools_and_products": [
+    {
+      "name": "",
+      "category": "e.g. agent framework, virtual computer, LLM, messaging, memory, orchestration",
+      "how_it_was_used": "",
+      "version_or_state_mentioned": "what state the tool was in at time of publication"
+    }
+  ],
+  "architecture_details": [
+    "any system design detail shown or described: how components connect, data flow, APIs used, auth patterns, hosting, boot process, agent-to-agent communication, memory design"
+  ],
+  "features_demonstrated": [
+    {
+      "feature": "",
+      "description": "",
+      "maturity": "demo | production | concept only",
+      "relevant_to_agent_platform": true
+    }
+  ],
+  "prompts_or_configs_shown": ["verbatim or near-verbatim prompts, config snippets, or commands shown on screen, if any"],
+  "business_or_workflow_insights": ["monetization, client delivery, or operational advice if present"],
+  "claims_and_opinions": [
+    {
+      "claim": "",
+      "confidence_of_speaker": "asserted strongly | suggested | speculative"
+    }
+  ],
+  "limitations_or_warnings_mentioned": [],
+  "explicit_recommendations": ["things the creator tells viewers to do or avoid"],
+  "references_to_other_videos_or_evolution": "any moment where the creator says this replaces, updates, or contradicts something they said before",
+  "publication_date_context": "1 to 2 sentences on what era of AI tooling this video belongs to and what has likely changed since",
+  "relevance_score": "1 to 10 for building a platform that spins up customizable AI agents with virtual computers, memory, and communication channels",
+  "relevance_rationale": ""
+}
+
+Rules:
+1. The published_date must come from the video's actual publication date. If you cannot determine it, use "UNKNOWN" and note this in publication_date_context.
+2. Do not invent tools, prompts, or features that were not in the video. If a field has nothing, use an empty array or empty string.
+3. Transcribe on-screen prompts and commands as accurately as possible. These are the highest-value items.
+4. If the video is not relevant to agent platforms, still complete the record and score it honestly.
+```
+
+**Operational note for Andrew:** keep a simple checklist spreadsheet of every video URL with a done/failed status. Gemini will occasionally fail on long videos; re-run those individually rather than trusting a batch completed.
+
+---
+
+## 2.3 Gemini Prompt B: Channel Evolution Timeline
+
+Run once per channel after all its video JSONs exist. Paste or attach all JSON records for that channel.
+
+```
+You are a research synthesist. Below are structured notes from every video on the channel [CHANNEL_NAME], each with a publication date. Produce a Markdown document called "Channel Evolution Timeline" with these sections:
+
+## 1. Chronological Timeline
+List every video in date order. For each: date, title, one line on what it contributed. Mark inflection points where the creator's approach visibly changed with the tag [SHIFT] and explain the shift.
+
+## 2. Concept Evolution
+For each major recurring concept (agent architecture, virtual computers, memory, communication, orchestration, monetization), trace how the creator's thinking changed from earliest mention to latest mention. Use the format: "Early position (date) -> Middle position (date) -> Current position (date)".
+
+## 3. Deprecated Ideas
+Tools, patterns, or recommendations the creator used to promote but later abandoned, replaced, or contradicted. Cite the dates on both sides. These must NOT be built into a new platform.
+
+## 4. Current Doctrine (as of the latest videos)
+The creator's present-day recommended stack, patterns, and workflow, weighted heavily toward the most recent 20 percent of videos. Be specific: name tools, architectures, and prompts.
+
+## 5. Stable Truths
+Ideas that persisted across the entire channel history unchanged. These are the safest foundations.
+
+Rules: cite the publication date for every claim. Never present an old-video position as current without flagging its date. If notes conflict, prefer the later date and record the conflict.
+```
+
+## 2.4 Gemini Prompt C: Cross-Channel Feature Extraction and Contradictions
+
+Run once, with both channels' JSONs and both timelines available.
+
+```
+You are preparing a build-requirements input for a software project. Using all video records and both channel timelines, produce two Markdown documents.
+
+DOCUMENT 1: feature_matrix.md
+A table of every distinct platform-relevant feature seen across both channels. Columns:
+| Feature | Source channel(s) | First seen (date) | Last seen (date) | Maturity | Depends on | Priority for our platform (P0/P1/P2) | Notes |
+Where "our platform" means: a browser-based, mobile and tablet friendly product where a user signs up, has an onboarding conversation with a platform agent, and the platform then spins up a customized AI agent with its own virtual computer, memory, knowledge base, and communication channels (email, messaging, calling).
+P0 = required for MVP. P1 = fast follow. P2 = later. Justify every P0.
+
+DOCUMENT 2: contradictions.md
+Every place the two creators disagree, or where one creator's current doctrine conflicts with the other's. For each contradiction:
+- What each side says, with dates
+- Which position is more recent
+- Which position better fits our platform's constraints (multi-tenant SaaS, security-first, non-technical end users)
+- A recommendation with reasoning
+
+Also include a section "Open Questions" listing anything neither channel resolves that the build team must decide independently.
+
+Rules: no invented features, every row must trace to at least one dated video record, and recency wins ties unless there is a stated security or multi-tenancy reason it should not.
+```
+
+---
+
+## 2.5 GPT 5.5 / Codex Prompt 1: Project Kickoff and Repo Scaffolding
+
+Give this as the very first message to Codex, with the `/research` folder available in the workspace.
+
+```
+You are the lead engineer on a long-running project. You will work in phases over days or weeks. Your first job is setup, not features. Do not write product code in this session.
+
+CONTEXT
+Read everything in /research, starting with /_synthesis/current_state.md, /_synthesis/feature_matrix.md, and /_synthesis/contradictions.md. This corpus was built from dated analysis of two YouTube channels and represents the domain knowledge for this project. Recent-dated material outranks older material.
+
+PRODUCT (one paragraph, treat as the north star)
+A secure, browser-based, multi-tenant platform. A new user signs up and is greeted by an onboarding agent that has a friendly conversation to learn their goal, role, and what knowledge sources they can provide, offering sensible defaults so non-technical users are never overwhelmed. The platform then provisions a customized AI agent with its own memory, knowledge base, virtual computer environment, and communication channels (email, messaging, voice), which the user can manage from desktop, tablet, or mobile browser.
+
+DO NOW, IN ORDER:
+1. Create the repository scaffold:
+   /docs/adr/           architecture decision records
+   /docs/PRODUCT.md     the north star paragraph above, expanded into user stories
+   /docs/LEDGER.md      the task ledger (format below)
+   /docs/QA.md          the QA loop definition (I will provide next session)
+   /apps/web/           frontend
+   /apps/api/           backend
+   /packages/           shared code
+   /infra/              IaC and deployment
+   Choose and justify the monorepo tooling in an ADR.
+2. Write ADR-0001 through ADR-0006 covering: tech stack, multi-tenancy and data isolation model, auth and security baseline, agent runtime approach (including whether to use a managed virtual-computer provider such as Orgo or self-host, citing the research corpus), memory and knowledge base architecture, and communication channel integration strategy. Each ADR: Context, Options considered, Decision, Consequences, Research citations with video dates.
+3. Create /docs/LEDGER.md with every task needed for the MVP, derived from the P0 rows of feature_matrix.md. Ledger format per task:
+   ID | Title | Phase | Depends on | Status (todo/doing/blocked/review/done) | Acceptance criteria | Notes
+4. Propose a phase plan: Phase 0 foundations, Phase 1 onboarding agent, Phase 2 agent provisioning and virtual computers, Phase 3 communication channels, Phase 4 hardening and responsive QA. Map every ledger task to a phase.
+5. Stop and present the ADRs and ledger for my approval. Ask me your top 5 clarifying questions, ranked by how much the answer changes the architecture.
+
+RULES FOR THE ENTIRE PROJECT
+- Never mark a ledger task done without listing evidence (tests passed, screenshots, or command output).
+- Any decision that contradicts the research corpus requires an ADR explaining why.
+- Security is a P0 feature: tenant isolation, encrypted secrets, least-privilege agent permissions, no cross-tenant data access, ever.
+- Update LEDGER.md at the end of every working session so a fresh session can resume with zero verbal context from me.
+```
+
+## 2.6 GPT 5.5 / Codex Prompt 2: Session Loop (use at the start of every subsequent session)
+
+```
+Resume the project. Do this in order:
+1. Read /docs/LEDGER.md, /docs/adr/ (titles and any ADR marked draft), and the last session summary at the bottom of LEDGER.md.
+2. State which task ID you are picking up and why it is the correct next one given dependencies.
+3. Implement it. Small commits with messages referencing the task ID.
+4. Prove it works: run tests, and for UI work capture behavior at 375px (mobile), 768px (tablet), and 1440px (desktop) widths.
+5. Run the QA loop in /docs/QA.md against everything you touched.
+6. Update LEDGER.md: status changes, evidence, new tasks discovered, blockers.
+7. Append a 5-line session summary to LEDGER.md: what changed, what is next, what needs my input.
+Do not start a second task until step 6 is complete for the first. If you are blocked, mark the task blocked with the exact reason and pick the next unblocked task.
+```
+
+## 2.7 GPT 5.5 / Codex Prompt 3: QA Loop Definition (give once, early in Phase 0)
+
+```
+Create /docs/QA.md defining the standing QA loop, then implement its tooling. Requirements:
+
+1. Automated: unit tests for all business logic, integration tests for auth and tenant isolation (a test that proves tenant A cannot read tenant B's data is mandatory and blocking), and end-to-end tests for signup, onboarding conversation, and agent provisioning.
+2. Responsive: an automated visual check at 375px, 768px, and 1440px for every user-facing page, plus a manual checklist (tap targets at least 44px, no horizontal scroll, keyboard does not cover inputs on mobile).
+3. Security checklist run before any phase is declared complete: dependency audit, secrets scan of the repo, authz test on every API route, rate limiting verified, input validation on all user-supplied content including knowledge base uploads.
+4. Agent-specific QA: the onboarding agent must be tested against at least 10 scripted personas including a confused non-technical user, a user who gives almost no information, and a user attempting prompt injection. Store transcripts in /docs/qa-transcripts/.
+5. Definition of done for any ledger task = code + tests + QA.md checks relevant to it + ledger evidence.
+
+CI must run categories 1 and 2 on every commit. Nothing merges red.
+```
+
+## 2.8 Iteration and Escalation Rules (paste into PRODUCT.md via Codex)
+
+```
+Add an "Iteration Rules" section to /docs/PRODUCT.md:
+- Work in vertical slices: each phase must end with something a real user could click through, even if narrow.
+- After each phase, produce a demo script I can follow in under 5 minutes to verify the phase myself.
+- Escalate to me (stop and ask) when: a decision costs money, touches user data retention, changes the tech stack, or contradicts an accepted ADR.
+- Prefer boring, well-documented technology. Novelty requires an ADR.
+- When the research corpus and current reality conflict (an API changed, a tool shut down), reality wins; record the discrepancy in /docs/adr/ as a corpus deviation note.
+```
+
+---
+
+## 2.9 What to Watch For During Ingestion and Build
+
+Three honest cautions so this plan survives contact with reality. First, video-derived knowledge goes stale fast; the corpus is inspiration and pattern library, not gospel, which is why the deviation-note rule exists. Second, "give every agent a phone, email, and virtual computer" is the most expensive and security-sensitive part of the whole product; expect the ADR process to push voice calling to P1 or P2, and let it. Third, the single highest-leverage artifact in this entire part is the tenant isolation test in the QA loop; if you only verify one thing personally, verify that one.
+
+
+===== PART 3: 03 DATA BACKEND FRONTEND COMMS =====
+
+# Part 3: System Architecture, Data Model, and Operations
+
+## 3.1 Tenant, Workspace, and Account Model
+
+Use a three-level hierarchy. Do not skip this. Retrofitting multi-tenancy later is one of the most painful migrations in SaaS.
+
+**Hierarchy:**
+
+1. **Organization (tenant)**: The billing and isolation boundary. Every row of tenant data carries an `org_id`. One org per customer company or individual account.
+2. **Workspace**: A project or department inside an org. Agents, knowledge bases, and channels live in workspaces. A solo user gets one default workspace created silently at signup.
+3. **User**: A human identity. Users belong to one or more orgs through memberships, each with a role.
+
+**Roles (keep it to four at launch):**
+
+- `owner`: billing, delete org, manage members
+- `admin`: manage workspaces, agents, channels, knowledge
+- `member`: use agents, upload knowledge, view conversations
+- `viewer`: read-only
+
+**Isolation strategy:** Single database, shared schema, `org_id` on every tenant table, enforced with Postgres Row Level Security (RLS). Set `app.current_org_id` per request via a session variable and write RLS policies against it. This gives you defense in depth even if application code has a bug. Reserve schema-per-tenant or database-per-tenant as a future enterprise tier, not a launch feature.
+
+**Agent-to-tenant binding:** Every agent, virtual computer, phone number, mailbox, and memory store is owned by exactly one workspace. Nothing is shared across orgs, ever, except your own platform-level system tables.
+
+## 3.2 Database Schema Outline
+
+Postgres as the primary store. Use `uuid` primary keys (v7 if available, for index locality) and `created_at` / `updated_at` on everything. Soft-delete with `deleted_at` on user-facing entities.
+
+**Identity and tenancy**
+
+- `organizations(id, name, slug, plan, status, stripe_customer_id, settings jsonb)`
+- `users(id, email, name, auth_provider, avatar_url, mfa_enabled)`
+- `memberships(id, org_id, user_id, role, invited_by, accepted_at)`
+- `workspaces(id, org_id, name, slug, settings jsonb)`
+- `api_keys(id, org_id, name, key_hash, scopes text[], last_used_at, expires_at, revoked_at)`
+
+**Agents and runtime**
+
+- `agents(id, org_id, workspace_id, name, role_description, system_prompt, model_provider, model_name, status, config jsonb, version int)`
+- `agent_versions(id, agent_id, version, system_prompt, config jsonb, created_by)` for rollback and audit of prompt changes
+- `virtual_computers(id, org_id, agent_id, provider, external_instance_id, state, region, booted_at, stopped_at, last_heartbeat_at)` where provider is Orgo or whatever VM layer you adopt
+- `agent_sessions(id, agent_id, computer_id, started_at, ended_at, exit_reason)`
+- `tasks(id, org_id, workspace_id, agent_id, status, priority, input jsonb, result jsonb, error, scheduled_for, started_at, finished_at, parent_task_id)` with statuses `queued, running, waiting_approval, succeeded, failed, cancelled`
+
+**Knowledge and memory**
+
+- `knowledge_sources(id, workspace_id, type, name, uri, sync_status, last_synced_at, config jsonb)` where type is upload, url, gdrive, notion, youtube_channel, etc.
+- `documents(id, source_id, workspace_id, title, mime_type, byte_size, content_hash, status)`
+- `chunks(id, document_id, workspace_id, ordinal, text, token_count, embedding vector, metadata jsonb)` using pgvector; add an HNSW index per the extension docs
+- `memories(id, agent_id, workspace_id, kind, text, embedding vector, importance real, source_message_id, expires_at, superseded_by)` where kind is `episodic, semantic, procedural, preference`
+- `memory_edges(id, from_memory_id, to_memory_id, relation)` optional, only if you later want graph traversal; skip at launch
+
+**Conversations and channels**
+
+- `channels(id, workspace_id, agent_id, type, status, external_address, provider, provider_config jsonb)` type in `web_chat, email, sms, whatsapp, voice, slack`
+- `conversations(id, org_id, workspace_id, agent_id, channel_id, contact_id, status, subject, last_message_at)`
+- `contacts(id, workspace_id, name, emails text[], phones text[], external_ids jsonb)` the humans the agent talks to
+- `messages(id, conversation_id, direction, role, content, content_type, provider_message_id, tokens_in, tokens_out, cost_usd numeric, sent_at, delivered_at, error)`
+- `attachments(id, message_id, storage_key, mime_type, byte_size, scan_status)`
+
+**Operations, billing, safety**
+
+- `audit_logs(id, org_id, actor_type, actor_id, action, target_type, target_id, ip, user_agent, metadata jsonb, created_at)` append-only, no updates or deletes permitted
+- `usage_events(id, org_id, workspace_id, agent_id, kind, quantity numeric, unit, cost_usd numeric, occurred_at, metadata jsonb)` kind in `llm_tokens, vm_minutes, sms_sent, voice_minutes, emails_sent, storage_gb`
+- `invoices(id, org_id, stripe_invoice_id, period_start, period_end, amount_usd, status)`
+- `rate_limit_buckets` live in Redis, not Postgres
+- `moderation_flags(id, org_id, target_type, target_id, reason, severity, status, reviewed_by)`
+- `webhooks(id, org_id, url, secret_hash, events text[], status)` and `webhook_deliveries(id, webhook_id, event, payload jsonb, status, attempts, next_retry_at)`
+
+Object storage (S3 or R2) holds raw files, attachments, VM snapshots, and call recordings. Postgres stores only keys and metadata.
+
+## 3.3 Backend Plan
+
+**Stack recommendation:** TypeScript end to end. Node with Fastify or NestJS for the API, BullMQ on Redis for job queues, Postgres with pgvector, Drizzle or Prisma as ORM. This is the stack GPT 5.5 will generate most reliably, and one language across API, workers, and frontend reduces glue bugs.
+
+**Services (as modules in one repo first, split later only if forced):**
+
+1. **API gateway service**: REST plus a small set of WebSocket endpoints. Handles auth, RLS session setup, validation with Zod, rate limiting.
+2. **Agent orchestrator**: Owns the agent loop. Pulls tasks from the queue, boots or resumes the virtual computer, streams model calls, executes tool calls, writes messages and usage events, enforces per-step budgets.
+3. **Channel workers**: One worker type per channel. Inbound webhooks from Twilio, SendGrid/Postmark, WhatsApp, Slack are normalized into a single internal `InboundMessage` shape and queued. Outbound sends go through a single `OutboundDispatcher` that applies rate limits and suppression lists before hitting providers.
+4. **Ingestion pipeline**: Fetch, extract text, chunk (400 to 800 tokens with overlap), embed, upsert. Idempotent by `content_hash` so re-syncs are cheap.
+5. **Billing and metering worker**: Aggregates `usage_events` hourly, pushes usage records to Stripe metered billing, enforces caps.
+
+**API surface (v1, keep it small):**
+
+- `POST /v1/auth/*` (delegate to Clerk, WorkOS, or Auth.js rather than rolling your own)
+- `GET/POST/PATCH /v1/workspaces`, `/v1/agents`, `/v1/agents/:id/versions`
+- `POST /v1/agents/:id/chat` (streaming SSE) and `POST /v1/tasks`
+- `GET /v1/conversations`, `GET /v1/conversations/:id/messages`
+- `POST /v1/knowledge/sources`, `POST /v1/knowledge/upload`
+- `GET /v1/usage`, `GET /v1/audit-logs`
+- Webhook receivers: `/webhooks/twilio`, `/webhooks/email`, `/webhooks/stripe`, each verifying provider signatures
+
+**Non-negotiables:** every webhook receiver verifies signatures; every mutation writes an audit log; every external call has a timeout and retry policy; idempotency keys on all POST endpoints that create resources or send messages.
+
+## 3.4 Frontend Plan
+
+Next.js with the App Router, Tailwind, shadcn/ui. Responsive from day one rather than a separate mobile build.
+
+**Core surfaces:**
+
+1. **Onboarding conversation**: The guided intake described in Part 2. A chat UI backed by a dedicated platform agent whose only tools are "create agent draft," "request knowledge source," and "summarize plan." It proposes defaults ("people in your situation usually start with email plus web chat") and never presents more than one decision per turn.
+2. **Agent dashboard**: List of agents with status (idle, running, error), last activity, cost this month, one-click start/pause.
+3. **Agent detail**: Live conversation view, computer screen preview (VM screenshot stream), memory browser, knowledge sources, channel settings, version history with rollback.
+4. **Inbox**: Unified cross-channel conversation list with human takeover. A human can pause the agent mid-conversation and reply directly; this is essential for trust and for abuse response.
+5. **Settings**: Members, roles, billing, API keys, audit log viewer, usage dashboards with per-agent cost breakdown.
+
+**QA matrix for release gating:** Chrome/Safari/Firefox desktop, iOS Safari, Android Chrome, tablet breakpoints. Automate with Playwright covering signup, onboarding, agent creation, sending and receiving a message on each channel, and billing checkout. Add axe-core accessibility checks to the same suite.
+
+## 3.5 Communication Channels Plan
+
+Build a channel abstraction first, then plug providers in behind it. Internal contract: `normalizeInbound(providerPayload) -> InboundMessage` and `dispatchOutbound(OutboundMessage) -> providerResult`.
+
+**Launch order (do them one at a time):**
+
+1. **Web chat**: No provider dependency, no compliance overhead. SSE or WebSocket, embeddable widget later.
+2. **Email**: Postmark or SendGrid inbound parse plus outbound. Each agent gets `agentname@mail.yourdomain.com` or a customer-verified domain with SPF/DKIM/DMARC. Threading via `In-Reply-To` headers mapped to `conversations`. Hard requirements: suppression list honoring bounces and complaints, unsubscribe handling, no cold outreach features.
+3. **SMS and WhatsApp**: Twilio. Understand before building that US SMS requires A2P 10DLC brand and campaign registration per customer use case, and WhatsApp requires approved templates for business-initiated messages. Build the registration workflow into onboarding for these channels rather than discovering it in production. Enforce STOP/HELP keyword handling and quiet hours.
+4. **Voice**: Last, and only after real demand. Twilio Voice with a realtime speech pipeline (provider realtime API or Deepgram plus TTS). Latency budget under 800ms per turn or it feels broken. Record calls only with consent flags per jurisdiction, store recordings encrypted, and log consent in the audit trail.
+5. **Notifications**: In-app notification table plus email digests. Web push later.
+
+**Cross-channel identity:** the `contacts` table merges the same human across email and phone so the agent's memory follows the person, not the channel.
+
+## 3.6 Memory and Retrieval Architecture
+
+Two distinct systems. Do not blur them.
+
+**Knowledge (workspace-level, curated):** The RAG pipeline over `documents` and `chunks`. Retrieval is hybrid: pgvector similarity plus Postgres full-text search, merged with reciprocal rank fusion, optional rerank step with a small cross-encoder or an LLM rerank call for the top 20. Every retrieved chunk carries its source so the agent can cite it.
+
+**Memory (agent-level, learned):**
+
+- **Episodic**: After each conversation closes, a summarization job writes 1 to 5 memory rows capturing what happened and outcomes.
+- **Semantic**: Extracted facts about contacts and the business ("the client's invoice cycle is Net 30"). Deduplicate by embedding similarity; when a new fact contradicts an old one, mark the old row `superseded_by` rather than deleting, which preserves auditability.
+- **Preference**: Explicit user instructions ("always CC accounting"). These get highest retrieval priority and are injected verbatim.
+- **Procedural**: Learned how-to sequences from successful computer-use tasks, stored as reusable step lists.
+
+**Context assembly at inference time, in priority order:** system prompt and agent role, preference memories, retrieved knowledge chunks, retrieved episodic/semantic memories, recent conversation turns, then the current message. Enforce a token budget per section and truncate lowest priority first. Log exactly what was assembled into each request (store a `context_manifest` jsonb on the message row) so you can debug "why did the agent say that."
+
+**Hygiene:** TTL on low-importance episodic memories, importance decay, a nightly consolidation job that merges near-duplicate memories, and a user-visible memory browser with delete, because users must be able to correct what the agent believes.
+
+## 3.7 Observability
+
+- **Structured logs**: JSON logs with `org_id`, `agent_id`, `task_id`, `trace_id` on every line. Pino to stdout, shipped to Axiom, Better Stack, or Grafana Loki.
+- **Tracing**: OpenTelemetry across API, workers, and provider calls. One trace per agent task so you can see the full chain: inbound message, retrieval, model call, tool calls, outbound send.
+- **LLM-specific observability**: Log every model call with prompt hash, model, tokens, latency, cost, and finish reason. Langfuse (self-hostable) fits well here and gives you prompt version comparison.
+- **Metrics and alerts**: Queue depth and age, task failure rate, model latency p95, per-provider error rates, webhook delivery failures, VM boot failures, cost per org per hour. Alert on cost-per-hour anomalies specifically; runaway agent loops show up in cost before anything else.
+- **Error tracking**: Sentry on frontend and backend.
+- **Status checks**: Synthetic canary that runs a trivial agent task end to end every 5 minutes.
+
+## 3.8 Audit Logs
+
+Append-only `audit_logs` table with no UPDATE or DELETE grants for the application role. Log: auth events (login, MFA change, API key create/revoke), membership and role changes, agent create/edit/version rollback, channel connect/disconnect, knowledge source add/remove, memory deletions, human takeover events, data exports, billing changes, and every admin impersonation if you ever add that feature. Include actor, IP, user agent, before/after diffs in metadata where feasible. Retain 1 year minimum, exportable per org. This table is also your SOC 2 down payment.
+
+## 3.9 Billing
+
+Stripe. Model: base subscription per plan plus metered usage.
+
+- **Plans**: Free trial (hard-capped, no card for web chat only), Starter, Pro, Business. Gate agent count, channels, and included usage by plan.
+- **Metered dimensions**: LLM tokens (billed as abstract "credits" so you can change providers without repricing), VM minutes, SMS segments, voice minutes, emails sent, storage GB.
+- **Mechanics**: `usage_events` is the source of truth; an hourly job aggregates and pushes usage records to Stripe. Show a live usage meter in the UI, because surprise bills kill trust faster than bugs.
+- **Spend caps**: Every org has a monthly spend cap, default set at plan level, editable by the owner. At 80 percent, notify; at 100 percent, pause agents gracefully (finish current task, decline new ones) rather than hard-killing mid-conversation.
+- **Dunning**: Stripe smart retries plus in-app banner; downgrade to read-only after 14 days unpaid rather than deleting anything.
+
+## 3.10 Rate Limiting, Abuse Prevention, and Cost Controls
+
+**Rate limiting (Redis token buckets, layered):**
+
+- Per IP on auth and signup endpoints
+- Per API key and per org on the API (requests per minute plus tokens per day)
+- Per agent on outbound sends: e.g. max emails per hour, max SMS per day, max new contacts messaged per day
+- Per conversation loop guard: max agent turns without human input, max tool calls per task, max wall-clock time per task
+
+**Abuse prevention:**
+
+- Email verification plus bot check at signup; card or phone verification before enabling SMS, email sending, or voice
+- Content moderation pass on outbound messages for new or low-trust orgs (drop to sampling for established orgs)
+- Suppression lists and mandatory opt-out handling across all channels; treat any bulk cold-outreach pattern as a hard block, since spammers will absolutely target a platform like this
+- Domain and phone number reputation isolation: new orgs send from shared low-trust pools; verified orgs bring their own domain/number so one bad actor cannot burn your deliverability
+- Anomaly rules: sudden fan-out to many new contacts, identical message bodies across contacts, VM processes attempting to reach unexpected networks. Flag to `moderation_flags`, auto-pause on high severity, human review queue
+- VM egress controls: default-deny outbound network on agent computers except an allowlist, no access to your internal network, per-session credentials that expire
+
+**Cost controls:**
+
+- Model routing: cheap fast model for classification, routing, and summarization; expensive model only for the actual agent reasoning turn. This alone typically cuts LLM spend 60 to 80 percent
+- Prompt caching for the static system prompt and knowledge preamble
+- VM auto-stop after N minutes idle, resume on demand (your sub-second boot infrastructure makes aggressive auto-stop cheap)
+- Embedding dedupe by content hash; never re-embed unchanged documents
+- Per-task budget in the orchestrator: max tokens, max tool calls, max VM minutes, enforced in code, with the task ending in `failed: budget_exceeded` rather than running forever
+- Weekly internal report: top 10 orgs by cost, cost per successful task, margin per plan. If margin per plan is negative you want to know in week one, not month six
+
+End of Part 3.
+
+
+===== PART 4: 04 COSTS BUSINESS ROADMAP =====
+
+# Part 4: Business Operations, Costs, Pricing, and Launch Roadmap
+
+## 4.1 Monthly Cost Model
+
+All numbers are estimates in USD as of mid 2026. Verify current pricing before committing, since LLM and VM pricing changes quarterly. The model assumes each active user has one primary agent, and roughly 20 percent of users run a second agent.
+
+### Core assumptions
+
+- **LLM usage per active agent per month:** 3M input tokens, 600K output tokens on a mid-tier model (Claude Sonnet class or GPT 5.5 mini class), plus occasional escalation to a top-tier model for hard tasks (about 10 percent of traffic).
+- **Virtual computer (Orgo-style VM):** billed per active minute, not per month. Assume the average agent uses 15 hours of VM time per month at roughly 0.05 to 0.10 per hour equivalent. Idle agents cost near zero if you enforce auto-stop.
+- **Telephony (calls plus SMS via Twilio or similar):** assume 30 percent of users enable it. Phone number rental about 1.15 per number per month, SMS about 0.008 per message, voice about 0.014 per minute plus speech-to-text and text-to-speech costs (roughly 0.05 to 0.10 per voice minute all-in with a realtime voice model).
+- **Email:** transactional email provider (Resend, Postmark) is cheap, budget 0.001 per email.
+- **Vector database plus storage for knowledge bases:** managed Postgres with pgvector, or Pinecone serverless. Small at low scale.
+- **Infrastructure:** app hosting, workers, Redis, monitoring, logging.
+
+### Small: 50 active users (about 60 agents)
+
+| Item | Monthly estimate |
+|---|---|
+| LLM inference | 250 to 500 |
+| VM compute (Orgo-style) | 60 to 120 |
+| Telephony (15 numbers, light usage) | 40 to 80 |
+| Email | under 10 |
+| Database, vector store, storage | 50 to 100 |
+| App hosting, workers, Redis | 50 to 150 |
+| Monitoring, error tracking, logs | 0 to 50 (free tiers) |
+| Domain, auth provider, misc SaaS | 30 to 60 |
+| **Total** | **roughly 500 to 1,050** |
+
+Cost per user: roughly 10 to 21.
+
+### Medium: 500 active users (about 600 agents)
+
+| Item | Monthly estimate |
+|---|---|
+| LLM inference | 2,500 to 5,000 |
+| VM compute | 600 to 1,200 |
+| Telephony (150 numbers, moderate usage) | 500 to 1,200 |
+| Email | 30 to 60 |
+| Database, vector store, storage | 300 to 600 |
+| App hosting, workers, Redis | 300 to 700 |
+| Monitoring, logging | 100 to 250 |
+| Auth, misc SaaS, support tooling | 150 to 300 |
+| **Total** | **roughly 4,500 to 9,300** |
+
+Cost per user: roughly 9 to 19. Some economies of scale, but LLM cost scales nearly linearly. Your biggest lever is prompt caching, model routing (cheap model by default, escalate only when needed), and aggressive VM auto-stop.
+
+### Larger: 2,500 active users (about 3,000 agents)
+
+| Item | Monthly estimate |
+|---|---|
+| LLM inference | 12,000 to 25,000 |
+| VM compute | 3,000 to 6,000 |
+| Telephony | 2,500 to 6,000 |
+| Email | 100 to 250 |
+| Database, vector store, storage | 1,000 to 2,500 |
+| App hosting, workers, Redis | 1,500 to 3,500 |
+| Monitoring, logging, security tooling | 500 to 1,200 |
+| Auth, SaaS, support tooling | 500 to 1,000 |
+| **Total** | **roughly 21,000 to 45,500** |
+
+Cost per user: roughly 8 to 18. At this level negotiate committed-use discounts with your LLM provider and VM provider, and consider a dedicated inference contract.
+
+### Key cost controls to build in from day one
+
+1. Per-user and per-agent token budgets with hard caps and soft warnings.
+2. VM auto-stop after N minutes idle. This is the single biggest waste prevention item.
+3. Model routing: cheap model for chat and classification, expensive model only for complex reasoning or computer use.
+4. Prompt caching for system prompts and knowledge base headers.
+5. Usage metering table in your database from the first commit, so pricing decisions are based on real data.
+
+## 4.2 Suggested Pricing Plans
+
+Price on value delivered, but tie limits to your real cost drivers: tokens, VM hours, phone usage.
+
+**Starter, 49 per month.** One agent, chat and email channels, 1 knowledge base up to 200 documents, 10 VM hours, no phone. Target: solo users trying it out. Margin is thin here on purpose, this is the acquisition tier.
+
+**Pro, 149 per month.** Up to 3 agents, all channels including one phone number, 3 knowledge bases, 40 VM hours, priority model access. Target: freelancers and small business operators. This should be your anchor tier and where most revenue lives.
+
+**Business, 449 per month.** Up to 10 agents, 3 phone numbers, unlimited knowledge bases within fair use, 150 VM hours, team seats, audit log export, SSO. Target: small companies replacing a part-time role.
+
+**Overage:** sell add-on packs (extra VM hours, extra phone numbers, token top-ups) rather than silently eating costs or hard-blocking users mid-task.
+
+**Annual discount:** two months free on annual. Improves cash flow while you are pre-revenue on infrastructure.
+
+Do not launch with a free tier. Launch with a 7-day trial that requires a card, or a 14-day trial without phone access. Free tiers on a product with real per-user compute cost will bleed you.
+
+## 4.3 What Is Required to Operate This as a Business
+
+**Legal and structural**
+
+- Form an LLC or equivalent before taking payments.
+- Terms of Service and Privacy Policy drafted for an AI product: state clearly that agents act on user instruction, what data is stored, which subprocessors you use (LLM provider, VM provider, Twilio, email provider), and retention periods. Use a lawyer or at minimum a reputable template service, then have a lawyer review before scale.
+- Acceptable Use Policy that prohibits spam, robocalls, harassment, scraping in violation of site terms, and impersonation. You need this both ethically and because Twilio and email providers will suspend you for abuse originating from your users.
+- Telephony compliance: register for A2P 10DLC in the US for SMS, honor Do Not Call rules, and disclose when a caller is an AI where required by law. Some jurisdictions require call recording consent from all parties. Build consent handling into the product, not the fine print.
+- Payment processing via Stripe, with tax handling via Stripe Tax or Paddle (Paddle acts as merchant of record and simplifies international sales tax significantly for a solo founder).
+
+**People and time**
+
+- At small scale this is one founder plus your AI coding agent. Budget your own time honestly: 40 percent building, 30 percent support and operations, 30 percent marketing and sales.
+- First hire when you cross roughly 300 to 500 paying users: part-time support person or contractor, because support load on an agent platform is heavy (users blame the platform when the agent does something odd).
+
+**Financial**
+
+- Runway: assume 6 months of infrastructure and tooling costs before revenue covers them. At small scale that is roughly 5,000 to 8,000 total including SaaS tools, legal templates, and incorporation.
+- Track gross margin per plan monthly. Target 70 percent or better blended margin. If a user's usage puts them below 50 percent margin two months running, that is your signal to adjust limits or reach out about upgrading.
+
+## 4.4 Support, Compliance, and Security Operations
+
+**Support operations**
+
+- Channels: in-app chat widget plus email support. Publish response time expectations (24 hours on Starter, 8 business hours on Pro, 4 on Business).
+- Build an internal admin panel early: view a user's agents, recent runs, error logs, and usage. Without this every support ticket takes 10x longer.
+- Maintain a status page (Instatus or BetterStack) and post incidents honestly.
+- Write help docs as you build features. Your onboarding agent can answer questions from these docs, which reduces ticket volume.
+
+**Security operations, recurring**
+
+- Weekly: review dependency alerts (Dependabot), review anomalous usage (sudden token spikes often mean a compromised account or abuse).
+- Monthly: rotate service credentials where not automated, review admin access, test backup restore (a backup you have never restored is not a backup).
+- Quarterly: run an automated penetration scan, review the threat model from Part 2 against new features.
+- Always: secrets in a secrets manager, never in the repo. Per-user data isolation enforced at the database layer (row-level security), not just application code. Agent VM sessions isolated per user with no shared filesystem. Rotating credentials for VM access. Rate limiting on all public endpoints. Audit log of agent actions, especially outbound communications, kept 90 days minimum.
+
+**Compliance operations**
+
+- Data deletion: honor account deletion requests within 30 days, including vector store entries and VM snapshots. Build the deletion job, do not do it by hand.
+- Data export: let users export their knowledge bases and conversation history. This builds trust and helps with GDPR/CCPA obligations.
+- Subprocessor list published and kept current.
+- Log outbound messages and calls with timestamps for telephony compliance disputes.
+- If you later target EU users seriously, plan a GDPR review; if you target companies handling health or financial data, do not accept that data until you have the controls to match. Say so in the ToS.
+
+**Abuse operations**
+
+- Automated checks on outbound volume per agent (an agent sending 500 emails an hour is a problem).
+- Kill switch per agent and per user, reachable from the admin panel in one click.
+- Manual review queue for new accounts that enable phone features in the first 48 hours.
+
+## 4.5 30/60/90 Day Roadmap
+
+**Days 1 to 30: Foundation and first working agent**
+
+- Gemini ingestion pipeline runs on both channels, knowledge base with dated feature notes complete (from Part 1 prompts).
+- Repo, CI, staging environment, secrets management, database with row-level security set up.
+- Core loop working end to end for one hardcoded user: create agent, attach knowledge base, chat with it in the browser, agent uses a VM session for one real task.
+- Usage metering table recording every token and VM minute from day one.
+- Milestone: you personally use one agent daily for a real task.
+
+**Days 31 to 60: Multi-user product**
+
+- Auth, accounts, billing with Stripe, plan limits enforced.
+- Onboarding conversation flow (the welcoming diagnostic agent) live, tested with 5 real people who are not you.
+- Email channel live. SMS behind a feature flag while A2P registration processes (start that registration in week 1, it can take weeks).
+- Admin panel v1, status page, help docs skeleton.
+- Responsive QA pass on mobile, tablet, desktop against the checklist from Part 3.
+- Milestone: 10 design partners using it free or discounted, giving weekly feedback.
+
+**Days 61 to 90: Hardening and paid launch**
+
+- Phone calling live for Pro and Business tiers with consent handling.
+- Security review: automated scan, secrets audit, backup restore test, abuse volume checks live.
+- Cost controls verified against real usage data from design partners, pricing finalized or adjusted.
+- Data deletion and export jobs working.
+- Public launch to a small audience (your network, one community, one launch post). Target: 25 to 50 paying users by day 90.
+- Milestone: first month where revenue exceeds infrastructure cost.
+
+## 4.6 First Message for the Discord Coding Channel
+
+Paste this as the opening message in your new channel:
+
+---
+
+**Project kickoff: Agent Platform build**
+
+This channel is the single source of truth for building our platform. Read this before anything else.
+
+**What we are building:** A browser-based platform where any person or company can spin up a customized AI agent in one click. Each agent gets its own brain (LLM plus memory), its own virtual computer, a knowledge base the user points it to, and communication channels (chat, email, SMS, voice calls). New users go through a friendly onboarding conversation with the platform's own agent, which figures out their goal, tells them plainly what inputs are needed, suggests what similar users typically do, and then provisions their agent. It must work well on mobile, tablet, and desktop, and it must be secure by default.
+
+**How we work in this channel:**
+1. Every work session starts by reading the pinned spec documents (Parts 1 through 4) and the current STATUS.md.
+2. All work happens in phases. Do not start a phase until the previous phase's acceptance checklist is confirmed here.
+3. Every feature ships with: tests, usage metering hooks, error handling, and a note in the changelog.
+4. Security rules are non-negotiable: no secrets in code, row-level security on all user data, per-user VM isolation, rate limits on public endpoints, audit logging on all outbound agent communications.
+5. When something is ambiguous, post the question here with your recommended default. Do not guess silently on anything touching billing, security, or outbound messaging.
+6. Post a short end-of-session summary: what was completed, what is blocked, what is next.
+
+**Current phase:** Phase 1, Foundation. Goals: repo plus CI plus staging, database schema with RLS, metering table, and the core loop (create agent, attach knowledge base, chat in browser, agent completes one task on a VM). Acceptance: I can use one agent for a real task end to end.
+
+First task: confirm you have read the pinned specs, then post your proposed Phase 1 task breakdown with time estimates before writing any code.
+
+---
+
+That message sets the working contract with your coding agent: spec-first, phase-gated, security as a standing rule, and no silent guessing on the risky parts. Pin it along with Parts 1 through 4.

@@ -1,0 +1,21 @@
+{
+  "name": "agent-os-cloud-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Phase 0 scaffold for a secure multi-tenant AI agent platform.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "lint": "node scripts/validate-docs.mjs",
+    "test": "node scripts/validate-ledger.mjs",
+    "build": "npm run build --workspaces --if-present",
+    "qa": "npm run lint && npm test && npm run build"
+  },
+  "engines": {
+    "node": ">=20.20.0",
+    "npm": ">=10.0.0"
+  },
+  "devDependencies": {}
+}
