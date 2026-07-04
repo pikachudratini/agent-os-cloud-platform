@@ -4,11 +4,11 @@ Customer-facing name: **MinionMint**. Repository remains `agent-os-cloud-platfor
 
 ## Product Thesis
 
-MinionMint is a minting desk for useful, bounded AI workers. It turns a messy business need into a clear Minion Blueprint: the worker's job, brain, memory, knowledge sources, operating rails, approval boundaries, first work order, and future channels or computer workspace.
+MinionMint is a minting desk for useful, approval-gated AI Minions. It turns a messy business need into a clear Minion Blueprint: the Minion mission, knowledge vault, memory rules, approval rails, communication identity, payment identity, app access, credential plan, observability, owner takeover, and future workspace.
 
 MinionMint should not feel like a generic AI helper builder or chatbot dashboard. The core experience is a guided diagnosis that helps a non-technical user understand what kind of AI worker they actually need, what inputs it needs, what it may do alone, and what must stay under human approval.
 
-One-line promise: **Mint a scoped AI worker with a job, memory, knowledge, and safety rails before you ever touch a prompt.**
+One-line promise: **Mint a useful AI Minion with mission, knowledge, memory rules, approval rails, and workspace identity before it does anything externally.**
 
 ## Source-Material Doctrine
 
@@ -18,7 +18,7 @@ This doctrine is synthesized from the 2026-07-03 source packet, preliminary YouT
 - Nick Vasiles source direction: Computer Use Agents for founders and operators, AI employees for small businesses, OpenClaw-style swarms, and monetizable real-world workflows.
 - Orgo-style source direction: fast managed computers for AI agents, browser/terminal/files, fleet API, encrypted sessions, rotating credentials, and live screen trust.
 
-MinionMint combines those threads into a user-facing product: diagnose the job, mint the worker, attach knowledge and memory, set safety rails, then later give the worker channels and an on-demand computer.
+MinionMint combines those threads into a user-facing product: diagnose the mission, mint the Minion, attach knowledge and memory rules, set approval rails, then later plan controlled channels, app access, credentials, observability, and an on-demand workspace.
 
 ## Problem MinionMint Solves
 
@@ -57,6 +57,27 @@ A Minion has:
 7. **Workstation**: future managed computer session for browser, apps, terminal, and files.
 8. **Ledger**: audit trail, usage, cost, and human takeover points.
 
+
+## Minion Operating Identity
+
+A Minion is not only a role, chat persona, or prompt. A Minion can be planned with a full operating identity: phone, inbox, apps, files, browser workspace, memory, owner-controlled credentials, payment rails, logs, and approval rules. Phase 1 represents these as blueprint fields and operations-board surfaces only. It does not enable live phone, inbox, payment, app, credential, or computer-use integrations.
+
+### Communication identity
+
+A future Minion may have its own AgentPhone-style phone number for SMS or iMessage and its own AgentMail-style email inbox. These channels are for receiving, drafting, and routing communications through controlled owner-approved rails. They remain disabled until explicit configuration, logging, and approval controls exist.
+
+### Payment identity
+
+A future Minion may have an AgentCard-style controlled payment method or virtual card. Payment is disabled by default, approval-first, limit-controlled, logged, and revocable. No Minion should spend or attempt payment without explicit owner approval and configured spending limits.
+
+### Workspace identity
+
+A future Minion may run inside an Orgo-style cloud computer with browser access, files, apps, credentials, connected accounts, memory, and visible owner takeover. Composio-style connectors can represent future access to Gmail, Slack, Calendar, Notion, CRMs, dashboards, and other apps. Credentials stay owner-controlled in the user workspace and are never prefilled into templates.
+
+### Knowledge, memory, and observability
+
+A future Minion can use Hermes plus Obsidian or HermesVault-style knowledge and memory. Every external action should be logged with Latitude-style traces. The owner should see last activity, pending approvals, spending status, connected apps, credential status, and stop or takeover controls.
+
 ## What Onboarding Must Produce
 
 Onboarding produces a **Minion Blueprint**, not just an agent spec.
@@ -65,12 +86,17 @@ The blueprint must include:
 
 - mission statement,
 - audience served,
-- first workflow to handle,
-- required knowledge sources,
-- memory/facts to capture,
-- approval boundaries,
-- channel plan,
+- first workflow to prepare for review,
+- required knowledge sources and knowledge vault plan,
+- memory and facts to capture,
+- approval rails,
+- communication identity with phone and email plans,
+- payment plan and spending limits,
+- connected apps plan,
+- owner-controlled credential plan,
 - future workstation needs,
+- observability plan,
+- owner takeover plan,
 - first-week success criteria,
 - generated role, tone, tools, and guardrails.
 
@@ -99,13 +125,15 @@ Deferred from MVP: phone numbers, email sending, multi-agent fleets, billing, an
 
 ## Visual Language Notes
 
-MinionMint should feel like a polished minting lab for practical AI workers:
+MinionMint should feel like a polished Minion minting desk and workspace platform:
 
-- roomy cards and generous spacing,
-- calm dark ink or light surfaces with subtle depth,
-- neon yellow and neon blue only as small accents, glows, badges, dividers, and selected states,
-- strong blue primary actions with warm yellow highlights,
-- dashboard cards that read like worker operating cards, not placeholders,
+- soft yellow background and warm surfaces,
+- white or near-white cards with subtle depth,
+- blue buttons, borders, highlights, and active states,
+- small yellow badge accents where helpful,
+- no yellow-blue blending that reads green,
+- dashboard cards that read like Minion operating surfaces, not a static local business demo,
+- platform-native examples such as Lead Follow-Up Minion, Inbox Triage Minion, Client Prep Minion, Research Minion, Dormant Customer Winback Minion, and Operations Minion,
 - mobile header that stacks cleanly instead of cramming nav and auth controls into one tight row.
 
 ## User Stories
@@ -164,4 +192,4 @@ Phase 1 hardening requires:
 - model-backed concierge generation through GPT-4.1 mini or GPT-4o mini when `OPENAI_API_KEY` is configured,
 - deterministic fallback for tests and cost control,
 - blueprint edit, refine, approve, and save states before anything is provisioned,
-- operations-board dashboard structure that previews status, mission, first work order, operating knowledge, memory rules, approval queue, connected tools, next action, last activity, first-week win, and owner review state.
+- operations-board dashboard structure that previews status, mission, first review task, phone plan, email plan, controlled payment status, connected apps, credential plan, knowledge vault, memory rules, approval queue, owner takeover, observability, next action, last activity, first-week win, and owner review state.

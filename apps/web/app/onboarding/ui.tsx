@@ -22,7 +22,7 @@ export function OnboardingChat() {
     if (!trimmed) return;
     const nextMessages: ChatMessage[] = [...messages, { role: 'user', content: trimmed }];
     const assistantReply = nextMessages.filter((message) => message.role === 'user').length >= 5
-      ? 'Good. I can now draft a Minion Blueprint. Review, edit, refine, and approve it before anything is provisioned.'
+      ? 'Good. I can now draft a Minion Blueprint. Review the mission, operating identity, approval rails, and future workspace plan before anything is provisioned.'
       : nextQuestion(nextMessages.filter((message) => message.role === 'user').length);
     setMessages([...nextMessages, { role: 'assistant', content: assistantReply }]);
     setServerPlan(null);
@@ -61,11 +61,13 @@ export function OnboardingChat() {
   return (
     <div className="hero onboarding-grid">
       <div className="chat glow-card">
+        <span className="badge accent-badge">Minting interview</span>
+        <h2>Plan the Minion before the prompt.</h2>
         <div className="chat-log" aria-live="polite">
           {messages.map((message, index) => <div key={index} className={`message ${message.role}`}>{message.content}</div>)}
         </div>
         <div className="form-row chat-input-row">
-          <input aria-label="Reply to MinionMint concierge" value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') sendMessage(); }} placeholder="Describe the job, inputs, approvals, or guardrails" />
+          <input aria-label="Reply to MinionMint concierge" value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') sendMessage(); }} placeholder="Describe the mission, knowledge, identity, apps, approvals, or takeover rules" />
           <button onClick={sendMessage}>Send</button>
         </div>
       </div>
@@ -77,13 +79,15 @@ export function OnboardingChat() {
         <h2>{plan.projectName}</h2>
         <p>{plan.summary}</p>
         <div className="blueprint-section"><strong>Mission</strong><p>{plan.mission}</p></div>
-        <div className="blueprint-section"><strong>First work order</strong><p>{plan.firstWorkflow}</p></div>
-        <div className="blueprint-section"><strong>Approval rails</strong><ul>{plan.approvalBoundaries.map((rail) => <li key={rail}>{rail}</li>)}</ul></div>
-        <div className="blueprint-section"><strong>Operating knowledge</strong><ul>{plan.knowledgeSources.map((source) => <li key={source}>{source}</li>)}</ul></div>
+        <div className="blueprint-section"><strong>First review task</strong><p>{plan.firstWorkflow}</p></div>
+        <div className="blueprint-section"><strong>Operating identity</strong><div className="identity-grid mini"><span>Phone: {plan.phonePlan.status}</span><span>Email: {plan.emailPlan.status}</span><span>Payment: {plan.paymentPlan.status}</span><span>Apps: {plan.connectedAppsPlan.slice(0, 3).join(', ')}</span></div></div>
+        <div className="blueprint-section"><strong>Approval rails</strong><ul>{plan.approvalRails.map((rail) => <li key={rail}>{rail}</li>)}</ul></div>
+        <div className="blueprint-section"><strong>Knowledge vault</strong><p>{plan.knowledgeVaultPlan}</p></div>
+        <div className="blueprint-section"><strong>Owner takeover</strong><p>{plan.ownerTakeoverPlan}</p></div>
         <div className="blueprint-section"><strong>Next action</strong><p>{plan.nextAction}</p></div>
         <div className="blueprint-editor stack">
           <label htmlFor="blueprint-edit"><strong>Owner review note</strong></label>
-          <textarea id="blueprint-edit" value={editText} onChange={(event) => setEditText(event.target.value)} placeholder="Revise the mission, approval rails, operating knowledge, or first-week win before approval." />
+          <textarea id="blueprint-edit" value={editText} onChange={(event) => setEditText(event.target.value)} placeholder="Revise the mission, identity plans, approval rails, knowledge vault, owner takeover, or first-week win before approval." />
           <div className="form-row action-row">
             <button className="secondary" disabled={!ready} onClick={applyManualEdit}>Apply edit</button>
             <button className="secondary" disabled={!ready || saveState === 'refining'} onClick={() => callBlueprint('refine', editText)}>Refine with concierge</button>

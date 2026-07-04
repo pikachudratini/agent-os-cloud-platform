@@ -12,6 +12,18 @@ assert.match(source, /ownerReviewState/);
 assert.match(source, /blueprint_approved/);
 assert.match(source, /connectedToolsNeeded/);
 assert.match(source, /approvalQueue/);
+assert.match(source, /communicationIdentity/);
+assert.match(source, /phonePlan/);
+assert.match(source, /emailPlan/);
+assert.match(source, /paymentPlan/);
+assert.match(source, /credentialPlan/);
+assert.match(source, /knowledgeVaultPlan/);
+assert.match(source, /observabilityPlan/);
+assert.match(source, /ownerTakeoverPlan/);
+assert.match(source, /spendingLimits/);
+assert.match(source, /AgentPhone-style/);
+assert.match(source, /AgentMail-style/);
+assert.match(source, /AgentCard-style/);
 
 const ui = readFileSync('apps/web/app/onboarding/ui.tsx', 'utf8');
 assert.match(ui, /Refine with concierge/);
@@ -25,7 +37,10 @@ assert.match(source, /deterministic_fallback/);
 assert.match(concierge, /Do not behave like a generic chatbot builder/);
 
 const guardrail = readFileSync('AGENTS.md', 'utf8');
-assert.match(guardrail, /MinionMint mints bounded AI workers through a guided blueprint process/);
+assert.match(guardrail, /MinionMint mints bounded AI Minions through a guided blueprint process/);
 assert.match(guardrail, /Do not implement it as a generic chatbot builder/);
+assert.match(guardrail, /AgentPhone-style/);
+assert.match(guardrail, /AgentMail-style/);
+assert.match(guardrail, /AgentCard-style/);
 
 console.log('onboarding planner, model concierge boundary, blueprint review states, and doctrine guardrail are present.');
