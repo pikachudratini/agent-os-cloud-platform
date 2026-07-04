@@ -1,0 +1,740 @@
+MinionMint Full Product and Platform Report
+Generated: 2026-07-04
+Repository: https://github.com/pikachudratini/agent-os-cloud-platform
+Customer-facing product name: MinionMint
+Internal repository name: agent-os-cloud-platform
+Latest completed doctrine commit before this report: 1477c60 feat: sharpen MinionMint product doctrine and UI
+
+IMPORTANT STATUS
+
+This report consolidates the Phase 0 and Phase 1 work, the source-material synthesis, the additional Gemini video ingestion, and the intended product/platform buildout. It is written so it can be read outside Discord.
+
+Phase 2 feature expansion remains paused until the source-material product doctrine is accepted.
+
+Vercel production deployment remains blocked until Vercel credentials, Clerk keys, and a managed Postgres DATABASE_URL are available.
+
+WHAT HAS BEEN BUILT SO FAR
+
+1. Repository and foundation
+
+- Created and pushed the project repository:
+  https://github.com/pikachudratini/agent-os-cloud-platform
+- Created the working project on VPS2:
+  /root/agent-os-cloud-platform
+- Maintained the local working copy:
+  /tmp/agent-os-cloud-platform
+- Set customer-facing product name to MinionMint while keeping the repository name agent-os-cloud-platform for now.
+- Added npm workspace metadata and placeholder workspace structure.
+- Added GitHub Actions CI for install, lint, test, and build.
+- Added docs, ADRs, QA process, ledger, source packet storage, and product doctrine.
+
+2. Phase 1 technical scaffold
+
+The current Phase 1 slice proves the basic user journey:
+
+- User can land on a MinionMint page.
+- User can start an onboarding concierge flow.
+- User answers questions about the worker they need.
+- The app generates a structured Minion Blueprint.
+- The blueprint can be saved through the onboarding API.
+- The dashboard can display the saved blueprint as a worker operations card.
+
+Built app pieces:
+
+- Next.js app shell.
+- Clerk auth shell with provider, sign-in route, sign-up route, and middleware behavior when real Clerk environment variables exist.
+- Local demo fallback when Clerk credentials are absent, so QA can still run.
+- Onboarding concierge UI.
+- Deterministic local planner that creates a Minion Blueprint from answers.
+- POST /api/onboarding route.
+- File-backed local persistence adapter for QA.
+- Dashboard page that displays the latest saved workspace/blueprint.
+- Prisma schema for managed Postgres.
+- Row-level security SQL plan.
+- Tests for onboarding doctrine and schema/RLS requirements.
+- Vercel configuration and MinionMint.com deployment checklist.
+
+3. Product doctrine pass
+
+The product was tightened so it does not become a generic AI helper builder.
+
+Updated files include:
+
+- docs/PRODUCT.md
+- docs/research/minionmint-source-synthesis.md
+- README.md
+- .agents/product-marketing.md
+- apps/web/app/lib/onboarding.ts
+- apps/web/app/onboarding/page.tsx
+- apps/web/app/onboarding/ui.tsx
+- apps/web/app/dashboard/page.tsx
+- apps/web/app/page.tsx
+- apps/web/app/styles.css
+- tests/onboarding.test.mjs
+- docs/LEDGER.md
+- docs/qa-screenshots/
+
+4. UI and visual changes already made
+
+- More breathing room in the header, hero, cards, chat, and forms.
+- Mobile header stacks more cleanly instead of cramming links and sign-in into one row.
+- Subtle neon yellow and neon blue accents are used through badges, glows, status pills, and card highlights.
+- Primary button remains strong blue with warmer yellow supporting accents.
+- Dashboard cards now feel like worker operating cards instead of placeholders.
+- Copy is now MinionMint-specific, using terms like Minion Blueprint, minting interview, bounded worker, approval rails, first work order, operations board, and future workstation.
+
+VERIFICATION EVIDENCE
+
+Fresh verification has passed in /tmp/agent-os-cloud-platform.
+
+Commands run:
+
+npm run qa
+
+That includes:
+
+- npm run lint
+- npm test
+- npm run build
+
+Passing evidence:
+
+- Docs validation passed with 17 required scaffold files.
+- Web TypeScript check passed with tsc --noEmit.
+- Ledger validation passed with 34 ledger tasks.
+- Onboarding planner source includes Minion Blueprint doctrine, MVP model, approval rails, workstation plan, and first-week win.
+- Postgres schema and RLS plan include required Phase 1 tenant models.
+- API workspace build passed.
+- Web Next.js production build passed.
+- Shared workspace build passed.
+- GitHub CI passed for commit 1477c60.
+
+Screenshots captured:
+
+- docs/qa-screenshots/minionmint-onboarding-375.png
+- docs/qa-screenshots/minionmint-onboarding-768.png
+- docs/qa-screenshots/minionmint-dashboard-1440.png
+
+SOURCE MATERIAL INGESTED AND SYNTHESIZED
+
+1. Original source packet
+
+The original source packet established the broad platform concept:
+
+- A customer-facing SaaS platform for AI agents and workspaces.
+- Agent brain and operating-system design.
+- Tenant isolation.
+- Memory and retrieval.
+- Communication channels.
+- Cost controls.
+- Managed infrastructure.
+- Future Orgo-style cloud computer integration.
+- Future virtual computer sessions with browser, terminal, files, and app access.
+
+2. Eric Michaud channel direction
+
+The source direction from Eric Michaud emphasized:
+
+- AI systems and agent operating systems.
+- Obsidian AI vaults and knowledge/memory workflows.
+- Codex levels and agent work quality.
+- Hermes Agent usage.
+- Agents communicating across terminals.
+- Prompt and system design for reliable agent work loops.
+
+3. Nick Vasiles channel direction
+
+The source direction from Nick Vasiles emphasized:
+
+- Computer Use Agents for founders, operators, and business builders.
+- AI employees for small businesses.
+- One-person agent businesses.
+- OpenClaw-style swarms.
+- Practical workflows and monetizable automation.
+
+4. Orgo-style platform direction
+
+The source packet and additional videos emphasized:
+
+- Cloud computers for AI agents.
+- Fast managed computers with browser, terminal, files, apps, and credentials.
+- Isolated workspaces for each client or project.
+- Secure credential handling.
+- Fleet management by API.
+- Templates and cloneable workspaces.
+- Connected apps, inboxes, files, dashboards, and observability.
+
+ADDITIONAL GEMINI VIDEO INGESTION COMPLETED
+
+The user provided three additional YouTube videos from other channels. They were analyzed with Gemini using native YouTube file references. Raw notes are stored in:
+
+research/gemini-video-ingestion/
+
+1. Video bpM9D1kQaAs
+
+URL:
+https://www.youtube.com/watch?v=bpM9D1kQaAs
+
+Gemini title/topic:
+AI Employee Buildout, MATO Episode
+
+Important findings:
+
+- AI employees should be framed as proactive workers, not passive chatbots.
+- Example workflow: find dormant customers, draft win-back emails, route drafts through a review gate, send approved emails, watch for replies, and maintain a knowledge wiki.
+- Useful product primitives include email, Google Docs review, payment or CRM sources, Obsidian-style knowledge, GitHub sync, model routing, state files, and AgentMail.
+- Human review gates are essential.
+- Templates and cloning matter because users want fast deployment.
+
+Implication for MinionMint:
+
+MinionMint should ask users for the first proactive workflow and approval gate, then generate a blueprint that can later become a working employee. Dashboard cards should show work queue, draft/review state, connected tools, learned context, and approval requirements.
+
+2. Video BI-MNjm1tTQ
+
+URL:
+https://www.youtube.com/watch?v=BI-MNjm1tTQ
+
+Gemini title/topic:
+Building a 1-Person Agent Business with AI Agents
+
+Important findings:
+
+- The strongest customer value is not AI technology. It is a vertical, outcome-driven worker that removes operational friction.
+- Customers want the agent to just work.
+- The customer should not need to manage API keys, model choices, connector details, computer setup, or brittle automations.
+- A first customer delivery should be narrow and fast, ideally one or two requests in the first 48 hours.
+- Isolated workspaces, secure authentication, observability, alerts, and self-healing behavior are major differentiators.
+- Consultants and operators can use repeatable vertical agent setups as a business model.
+
+Implication for MinionMint:
+
+MinionMint should push users toward one narrow first Minion, not a broad all-purpose assistant. The dashboard should eventually show health, alerts, last run, and needs-owner-approval states.
+
+3. Video Y7FVj4njob0
+
+URL:
+https://www.youtube.com/watch?v=Y7FVj4njob0
+
+Gemini title/topic:
+The $5k/mo One-Person Agent Business, Full Playbook
+
+Important findings:
+
+- A one-person operator can manage multiple clients by giving each client an isolated workspace.
+- Each workspace can include apps, files, logins, computer access, inboxes, and agents.
+- Templates, cloning, connected apps, AgentMail, terminal access, workspace isolation, and watchdogs are central platform primitives.
+- Client discovery should begin with pain points and workflow mapping.
+- An audit can become both an acquisition mechanism and an onboarding artifact.
+
+Implication for MinionMint:
+
+The onboarding output should double as a client-facing audit artifact. Future product sections should include connected apps, computer/workstation, inbox, files, watchdogs, approvals, and templates.
+
+ACTUAL PLATFORM THESIS
+
+MinionMint is not a generic chatbot builder.
+
+MinionMint is a minting desk for useful, bounded AI workers. A user describes a messy business need in plain English and receives a Minion Blueprint that defines:
+
+- job
+- brain
+- memory
+- knowledge sources
+- operating rules
+- approval boundaries
+- first work order
+- channel plan
+- future workstation needs
+- audit and usage requirements
+
+The core promise:
+
+Mint a scoped AI worker with a job, memory, knowledge, and safety rails before the user ever touches a prompt.
+
+THE PROBLEM MINIONMINT SOLVES
+
+Most people do not know how to translate a business problem into an agent system. They can describe pain such as missed leads, follow-up, inbox overload, research, client prep, repetitive admin, or support questions. They usually cannot define:
+
+- what role the worker should have
+- what it should be allowed to do
+- what knowledge it needs
+- what memory should persist
+- what tools and channels it should get
+- what actions require approval
+- when computer-use is needed
+- how to keep the system safe and isolated
+
+Generic chatbot builders make users configure prompts and widgets. MinionMint should diagnose the job, propose the worker, define the safety rails, and create the first work order.
+
+WHO MINIONMINT IS FOR
+
+Primary early users:
+
+- founders
+- solo operators
+- service businesses
+- consultants
+- agency operators
+- business builders
+- non-technical users who need guided defaults
+- people who want AI labor without building AI infrastructure
+
+Strong early use cases:
+
+- lead qualification
+- dormant customer reactivation
+- inbox triage
+- follow-up drafting
+- client prep
+- research and summaries
+- support answer drafting
+- workflow audits
+- vertical service business automations
+- managed AI worker setups for clients
+
+Not a fit for the MVP:
+
+- unrestricted autonomous agents
+- cold outreach spam systems
+- regulated data workflows before compliance controls exist
+- users who only want a generic website chatbot widget
+
+WHAT A MINION MEANS
+
+A Minion is a small, bounded AI worker minted for a mission. It is not just a chat persona.
+
+A Minion has:
+
+1. Job
+The outcome it is responsible for.
+
+2. Brain
+Model, role, tone, goals, rules, and escalation behavior.
+
+3. Memory
+Persistent facts, preferences, summaries, corrections, and task history.
+
+4. Knowledge
+Approved documents, websites, FAQs, SOPs, examples, videos, client context, and business rules.
+
+5. Operating rails
+What it can do alone, what needs approval, and what it must never do.
+
+6. Channels
+Chat first, then later email, SMS, voice, inboxes, and external communication surfaces.
+
+7. Workstation
+A future managed computer session with browser, apps, terminal, files, and visible screen state.
+
+8. Ledger
+Audit trail, usage, cost, approvals, last activity, and human takeover points.
+
+WHAT ONBOARDING SHOULD PRODUCE
+
+Onboarding produces a Minion Blueprint.
+
+The Minion Blueprint includes:
+
+- mission statement
+- target audience or contact type served
+- first workflow to automate
+- required knowledge sources
+- memory and facts to capture
+- approval boundaries
+- channel plan
+- future workstation or computer-use needs
+- first-week success criteria
+- generated worker role
+- tone and model default
+- tools needed
+- guardrails
+- dashboard-ready status card
+
+The user should finish onboarding feeling:
+
+I know exactly what this worker is for, what it needs from me, what it will do first, and where the safety rails are.
+
+HOW MINIONMINT DIFFERS FROM GENERIC CHATBOT BUILDERS
+
+Generic chatbot builders:
+
+- start with prompts and widget settings
+- produce chat personalities
+- force the user to know what to configure
+- focus on knowledge-base chat
+- usually stay reactive
+- often have weak safety and approval models
+
+MinionMint:
+
+- starts with job diagnosis and worker design
+- produces a Minion Blueprint
+- asks adaptive questions and proposes defaults
+- combines knowledge, memory, channels, approvals, and computer-use planning
+- is built toward proactive AI employees
+- is approval-first and tenant-isolated
+- treats onboarding as a workflow audit and worker design process
+
+CURRENT PHASE 1 PRODUCT FUNCTIONALITY
+
+Landing page
+
+- Explains that MinionMint mints workers, not chatbots.
+- Calls out the Minion Blueprint concept.
+- Links to onboarding and dashboard.
+
+Onboarding
+
+Current questions ask about:
+
+- what job the first Minion should own
+- what business or project it belongs to
+- who it should serve
+- what repeatable workflow it should handle first
+- what source material should become operating knowledge
+- what must require approval
+- what future computer-use work it may need
+- what first-week win would prove value
+
+Generated plan structure
+
+The generated Minion Blueprint includes:
+
+- projectName
+- workspaceName
+- summary
+- thesis
+- minionConcept
+- status
+- mission
+- audience
+- firstWorkflow
+- knowledgeSources
+- memoryToCapture
+- approvalBoundaries
+- channelPlan
+- workstationPlan
+- firstWeekWin
+- userFeeling
+- agentSpec
+
+Agent spec includes:
+
+- name
+- role
+- tone
+- model
+- tools
+- guardrails
+- knowledge sources
+- approval mode
+
+Dashboard
+
+The dashboard currently displays:
+
+- operations board headline
+- Minion Blueprint card
+- mission and first work order
+- knowledge and memory
+- safety rails
+- future workstation plan
+- user feeling target
+- blueprint draft state
+- approval-first worker status
+
+DATA AND INFRASTRUCTURE ALREADY PLANNED
+
+Managed Postgres schema includes or plans:
+
+- organizations
+- users
+- memberships
+- workspaces
+- audit logs
+- usage events
+
+RLS and isolation plan:
+
+- use organization/workspace scoping
+- prove tenant A cannot read tenant B data
+- use row-level security policy plan
+- add future authz route tests
+
+Security posture:
+
+- never preserve secrets in docs
+- use redacted environment values
+- use Clerk for auth
+- use managed Postgres for durable state
+- use approval gates before risky external actions
+- track audit logs and usage events
+- keep real production deployment blocked until credentials are configured safely
+
+APPROVED PRODUCT DECISIONS
+
+Customer-facing name:
+MinionMint
+
+Repository name:
+agent-os-cloud-platform for now
+
+Auth provider:
+Clerk
+
+Deployment target:
+Vercel plus managed Postgres
+
+Concierge model for MVP:
+GPT-4.1 mini or GPT-4o mini
+
+Virtual computer proof:
+Phase 2, not Phase 1
+
+VPS2 role:
+Automation, workers, builds, backups, and heavier infrastructure
+
+PHASE PLAN AND EVERYTHING TO BE BUILT OUT
+
+Phase 0: Doctrine and foundations
+
+Goal:
+Build the foundation, product doctrine, documentation, source corpus, QA loop, and architecture decisions.
+
+Already built:
+
+- repo scaffold
+- docs
+- ADRs
+- QA plan
+- ledger
+- CI
+- source packet location
+- first source synthesis
+- Gemini video ingestion notes
+
+Still to complete or expand:
+
+- complete full per-video Gemini corpus if desired
+- organize channel folders and source records
+- keep doctrine updated as new source material is ingested
+
+Phase 1: Minion Blueprint onboarding
+
+Goal:
+Prove a user can sign up, complete onboarding, receive a useful Minion Blueprint, save it, and return to see it in the dashboard.
+
+Already built:
+
+- Clerk auth shell
+- onboarding concierge UI
+- Minion Blueprint generator
+- save onboarding API
+- dashboard display
+- responsive UI pass
+- screenshots
+- Prisma schema plan
+- RLS plan
+
+Still to build:
+
+- real Clerk environment configuration
+- real managed Postgres adapter replacing local file-backed QA storage
+- actual OpenAI model call for concierge generation when key is configured
+- richer adaptive question logic
+- user-visible editing of the generated blueprint
+- onboarding progress state
+- ability to regenerate or refine the blueprint
+- better empty states and error states
+- polished mobile interaction after scroll QA
+
+Phase 2: Agent provisioning and virtual computer proof
+
+Goal:
+Turn a Minion Blueprint into one provisioned AI worker with chat, knowledge, and a narrow managed computer-use proof if approved.
+
+To build:
+
+- agent records in the database
+- agent spec persistence
+- prompt/system manifest per agent
+- model routing layer
+- chat runtime
+- context manifest logging
+- knowledge source attachment
+- document upload or URL ingestion
+- content chunking and dedupe
+- memory foundation
+- user-visible memory list
+- memory correction and deletion controls
+- ComputerProvider interface
+- managed computer start/stop/snapshot hooks
+- budget controls for computer sessions
+- visible screen trust model
+- manual takeover or stop control
+- one narrow computer-use demo, likely browser-based, only after approval
+
+Phase 3: Channels and communication
+
+Goal:
+Allow Minions to communicate through controlled channels with approval gates.
+
+To build:
+
+- production web chat channel
+- normalized inbound/outbound message contract
+- streaming chat responses
+- external send approval queue
+- draft mode for outbound messages
+- email channel after approval gate exists
+- SMS channel after compliance review
+- voice channel after compliance review
+- AgentMail or inbox-like concepts
+- reply monitoring
+- customer handoff and escalation rules
+- channel-specific audit logs
+
+Phase 4: Operations board and managed worker platform
+
+Goal:
+Make the dashboard a real operations board for one or more Minions.
+
+To build:
+
+- worker health status
+- last activity
+- next action
+- pending approvals
+- connected knowledge state
+- connected apps state
+- usage and cost view
+- audit trail
+- alert center
+- watchdog status
+- failed run recovery
+- owner feedback and correction loop
+- template library
+- cloneable Minion Blueprints
+- workspace per client or project
+- vertical packs for service businesses
+- import/export blueprint artifact
+
+Phase 5: Hardening and production readiness
+
+Goal:
+Prepare for real users and client data.
+
+To build:
+
+- real tenant isolation tests
+- authz route tests
+- dependency audit process
+- secrets scan
+- rate limiting
+- input validation
+- upload validation and malware-scan placeholder
+- usage metering
+- billing model
+- admin tools
+- backup and restore plan
+- observability
+- error reporting
+- production logging
+- privacy and data retention controls
+- Terms, Privacy, and acceptable use policy
+
+Phase 6: Managed infrastructure and scale
+
+Goal:
+Grow MinionMint into a secure multi-tenant AI agent operating environment.
+
+To build:
+
+- fleet management for agents
+- fleet management for workspaces/computers
+- templates and cloning
+- model selection and fallback routing
+- cost-aware model routing
+- background workers
+- scheduled automations
+- webhook/event system
+- queue system
+- long-running job tracking
+- human-in-the-loop approval service
+- customer/project-level isolation
+- managed computer sessions
+- app connectors
+- secure credential vault integration
+- API for advanced users and integrators
+
+VISUAL LANGUAGE TO MAINTAIN
+
+MinionMint should feel like a polished minting lab for practical AI workers.
+
+Use:
+
+- roomy cards
+- generous spacing
+- calm surfaces
+- subtle depth
+- neon yellow accents used sparingly
+- neon blue accents used sparingly
+- strong blue primary actions
+- warm yellow support highlights
+- badges and soft glows
+- dashboard cards that feel like worker operating cards
+- mobile layouts that stack cleanly
+
+Avoid:
+
+- generic chatbot language
+- cramped mobile nav
+- loud yellow backgrounds
+- placeholder dashboards
+- overuse of model jargon
+- making the user feel like they need to write prompts
+
+CURRENT BLOCKERS
+
+1. Vercel production deployment
+
+Blocked until:
+
+- Vercel credentials or token are available
+- Clerk publishable key is available
+- Clerk secret key is available
+- managed Postgres DATABASE_URL is available
+- exact Vercel DNS records are known
+- Porkbun DNS can be updated for minionmint.com and www.minionmint.com
+
+2. Real persistence
+
+The production Prisma schema is planned, but local QA currently uses file-backed persistence. Managed Postgres must be configured before real users.
+
+3. Real model-backed concierge
+
+The deterministic local planner works for QA. Production concierge should call GPT-4.1 mini or GPT-4o mini once the OpenAI key and cost controls are configured.
+
+4. Full source corpus
+
+The three additional videos were analyzed. The docs still note that full per-video Gemini analysis across all source channels remains a separate research task if a deeper corpus is needed.
+
+NEXT BEST STEPS
+
+1. Accept or revise this product doctrine.
+2. Configure Clerk, managed Postgres, and Vercel credentials.
+3. Replace local file persistence with Prisma/Postgres.
+4. Add real model-backed concierge generation.
+5. Add blueprint editing and refinement.
+6. Add source upload or URL ingestion.
+7. Add agent record provisioning from a blueprint.
+8. Add chat runtime for one Minion.
+9. Add approval queue before any external actions.
+10. Only then proceed to Phase 2 computer-use proof.
+
+SUMMARY
+
+MinionMint is now defined as a platform for minting bounded AI workers, not a generic chatbot builder. The first product experience is onboarding that creates a Minion Blueprint. That blueprint becomes the foundation for the future agent, knowledge, memory, approval, channel, computer-use, and operations-board platform.
+
+The product should keep the user focused on a narrow first worker, a clear business outcome, approved knowledge, memory rules, safety rails, and a first-week win. The long-term platform should grow into isolated workspaces where each Minion can use connected apps, inboxes, files, computer sessions, templates, watchdogs, observability, and human approval queues.

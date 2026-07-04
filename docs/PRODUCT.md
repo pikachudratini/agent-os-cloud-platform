@@ -12,7 +12,7 @@ One-line promise: **Mint a scoped AI worker with a job, memory, knowledge, and s
 
 ## Source-Material Doctrine
 
-This doctrine is synthesized from the 2026-07-03 source packet, preliminary YouTube channel notes for Eric Michaud and Nick Vasiles, and Orgo-style computer-use platform notes. See `docs/research/minionmint-source-synthesis.md`.
+This doctrine is synthesized from the 2026-07-03 source packet, preliminary YouTube channel notes for Eric Michaud and Nick Vasiles, Orgo-style computer-use platform notes, and the additional 2026-07-04 Gemini video ingestion files `bpM9D1kQaAs`, `BI-MNjm1tTQ`, and `Y7FVj4njob0`. See `docs/research/minionmint-source-synthesis.md`.
 
 - Eric Michaud source direction: agent operating systems, memory/vault patterns, prompt/system quality, terminal-to-terminal agent coordination, and reliable agent work loops.
 - Nick Vasiles source direction: Computer Use Agents for founders and operators, AI employees for small businesses, OpenClaw-style swarms, and monetizable real-world workflows.
@@ -138,3 +138,14 @@ MinionMint should feel like a polished minting lab for practical AI workers:
 ## Deployment Domain Plan
 
 Prepare Vercel project naming for MinionMint.com. Keep DNS pending until Vercel gives exact records, then update Porkbun DNS for the apex/root domain and `www`. Verify `https://minionmint.com` and `https://www.minionmint.com` externally before calling the app live.
+
+
+## Additional Video-Informed Product Implications
+
+The additional Gemini video ingestion reinforced five product requirements:
+
+1. **Proactive workflows over passive chat**: Minions should eventually execute workflows such as lead follow-up, win-back campaigns, inbox triage, research, and client prep, with approvals where risk exists.
+2. **Templates and cloning**: users should not start from a blank prompt. MinionMint should support reusable Minion templates and cloneable workspace blueprints.
+3. **Vertical delivery**: the strongest commercial wedge is a specific worker for a specific industry or workflow, not a generic all-purpose assistant.
+4. **Workspace isolation and observability**: future client/project workspaces need separate data, connected apps, files, inboxes, health checks, watchdogs, and audit trails.
+5. **Blueprint as audit artifact**: onboarding should produce something useful outside the app: a diagnosis of the workflow, the proposed worker, required inputs, approval rails, first-week win, and later automation path.

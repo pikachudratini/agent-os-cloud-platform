@@ -106,3 +106,69 @@ The user should feel guided, not interrogated. The tone should be calm, competen
 5. Computer-use is a later power-up, but the blueprint should capture when a workstation will be needed.
 6. The dashboard should read like an operations board for minted workers, not a placeholder CRUD list.
 7. Visual language should combine trustworthy SaaS polish with small neon yellow and neon blue minting-lab accents.
+
+
+## Additional Gemini video ingestion, 2026-07-04
+
+Three additional YouTube videos from other channels were analyzed with Gemini using native YouTube file references. Raw analysis files are stored in `research/gemini-video-ingestion/`.
+
+### `bpM9D1kQaAs`: AI Employee Buildout, MATO Episode
+
+Useful thesis for MinionMint:
+
+- AI employees should be framed as workers that perform proactive workflows, not chatbots that wait for prompts.
+- A useful worker can find dormant customers, draft win-back emails, route drafts through a human review gate, send approved emails, monitor replies, and build an internal wiki of learned context.
+- The platform value is tool connection plus operating context: email, docs, payments, CRM-like data, Obsidian-style knowledge, GitHub sync, model routing, and state files.
+- Human approval is part of the product. Google Docs review gates in the source material translate directly into MinionMint approval rails.
+- Templates and cloning matter because users want fast worker deployment, not a blank prompt canvas.
+
+Implications:
+
+- Onboarding should ask for the first proactive workflow and the approval gate, not just a bot personality.
+- Dashboard cards should show current work queue, draft/review state, connected tools, and learned context.
+- MinionMint should eventually support reusable Minion templates such as win-back worker, lead qualification worker, inbox triage worker, research worker, and follow-up worker.
+
+### `BI-MNjm1tTQ`: Building a 1-Person Agent Business with AI Agents
+
+Useful thesis for MinionMint:
+
+- The strongest customer value is not “AI tech.” It is a vertical, outcome-driven managed worker that removes operational friction.
+- Customers want the agent to just work. They do not want to manage API keys, model choices, computer setup, connector details, or brittle automations.
+- A first customer delivery should be small, fast, and bounded, ideally one to two clear requests in the first 48 hours.
+- Isolated workspaces, secure authentication, observability, alerts, and self-healing behavior are major differentiators.
+- The business opportunity is especially strong for consultants and operators who can deploy repeatable workers for one vertical market.
+
+Implications:
+
+- MinionMint should guide users toward one narrow first Minion rather than a broad general assistant.
+- The product should support vertical templates and managed-service packaging later.
+- The dashboard should include health, alerts, last run, and “needs owner approval” states.
+- Onboarding should ask what outcome would make the worker worth keeping in the first week.
+
+### `Y7FVj4njob0`: The $5k/mo One-Person Agent Business, Full Playbook
+
+Useful thesis for MinionMint:
+
+- A one-person operator can manage multiple clients by giving each client an isolated workspace with its own cloud computer, apps, files, logins, and agents.
+- Templates, cloning, connected apps, AgentMail, terminal access, workspace isolation, and watchdogs are central platform primitives.
+- The platform should abstract technical setup while preserving enough visibility for trust and troubleshooting.
+- Client discovery should begin with pain points and workflow mapping, then convert into a scoped worker blueprint.
+- Audits can become an acquisition and onboarding mechanism: diagnose workflows, identify automation opportunities, then mint workers.
+
+Implications:
+
+- MinionMint should include a future “workspace per client/project” model with cloneable Minion blueprints.
+- The onboarding output should double as an audit artifact, not just an internal config object.
+- Future platform sections should include connected apps, computer/workstation, inbox, files, watchdogs, approvals, and templates.
+- The product should stay approval-first because client trust is the gating factor for autonomous work.
+
+## Updated doctrine after additional videos
+
+The additional videos strengthen the existing thesis:
+
+1. MinionMint should sell and design bounded workers, not generic chatbots.
+2. The first product output is a Minion Blueprint that can also serve as a client-facing audit artifact.
+3. The best first Minion is narrow, proactive, measurable, and approval-gated.
+4. The platform should later grow into isolated workspaces with apps, files, inboxes, computer-use sessions, templates, cloning, watchdogs, observability, and human approval queues.
+5. The dashboard should become an operations board for workers: mission, first workflow, connected knowledge, pending approvals, health, last activity, next action, cost, and audit trail.
+6. Product copy should emphasize outcomes, friction removal, and managed AI labor, not model jargon.
