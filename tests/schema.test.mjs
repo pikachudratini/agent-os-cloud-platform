@@ -29,9 +29,17 @@ assert.match(runtimePersistenceMigration, /MinionRuntime_orgId_minionId_key/);
 const credentialSetupMigration = readFileSync('apps/web/prisma/migrations/0004_credential_setup.sql', 'utf8');
 assert.match(credentialSetupMigration, /CREATE TABLE IF NOT EXISTS "CredentialSetup"/);
 assert.match(credentialSetupMigration, /"credentialRefs" jsonb NOT NULL DEFAULT '\[\]'::jsonb/);
+assert.match(credentialSetupMigration, /"credentialType" text NOT NULL DEFAULT 'custom_ref'/);
+assert.match(credentialSetupMigration, /"allowedUse" text NOT NULL DEFAULT ''/);
+assert.match(credentialSetupMigration, /"redactedValue" text NOT NULL DEFAULT '••••'/);
+assert.match(credentialSetupMigration, /"secretCiphertext" text/);
+assert.match(credentialSetupMigration, /"valueFingerprint" text/);
 assert.match(credentialSetupMigration, /"encrypted" boolean NOT NULL DEFAULT false/);
 assert.match(credentialSetupMigration, /CredentialSetup_orgId_minionId_key/);
 assert.match(credentialSetupMigration, /credential_setup_org_isolation/);
+const credentialSetupMetadataMigration = readFileSync('apps/web/prisma/migrations/0005_credential_setup_metadata.sql', 'utf8');
+assert.match(credentialSetupMetadataMigration, /ADD COLUMN IF NOT EXISTS "credentialType"/);
+assert.match(credentialSetupMetadataMigration, /ADD COLUMN IF NOT EXISTS "secretCiphertext"/);
 assert.match(schema, /credentialSetups CredentialSetup\[\]/);
 assert.match(schema, /@@unique\(\[orgId, minionId\]\)/, 'CredentialSetup lookup should be unique inside an org');
 

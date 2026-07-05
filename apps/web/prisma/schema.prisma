@@ -134,8 +134,13 @@ model CredentialSetup {
   ownerUserId    String
   minionId       String
   displayName    String
+  credentialType String   @default("custom_ref")
+  allowedUse     String   @default("")
   vaultProvider  String?
   credentialRefs Json     @default("[]")
+  redactedValue  String   @default("••••")
+  secretCiphertext String?
+  valueFingerprint String?
   encrypted      Boolean  @default(false)
   readiness      String   @default("missing")
   createdAt      DateTime @default(now())

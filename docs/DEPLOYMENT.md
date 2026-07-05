@@ -16,7 +16,7 @@ Current app can:
 - preview planned identity surfaces for phone, email, payment, apps, credentials, workspace, knowledge vault, observability, and owner takeover,
 - report provider-neutral provisioning readiness through `/api/provisioning`,
 - run a first self-hosted runtime supervisor loop that creates workspace files, launches a configured local process, stores PID/status/log excerpts, stops the PID, exposes a local Minion console route, and persists MinionRuntime records through Prisma when `DATABASE_URL` is configured,
-- let an owner save encrypted credential references through the dashboard and persist CredentialSetup records through Prisma when `DATABASE_URL` is configured.
+- let an owner save credential references through the dashboard, show redacted values only, and persist CredentialSetup records through Prisma when `DATABASE_URL` is configured.
 
 Current app cannot yet:
 

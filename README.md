@@ -136,7 +136,7 @@ Current provisioning status:
 - `/api/provisioning` reports readiness and returns a clear not-configured response when provider-neutral requirements are missing.
 - The self-hosted path can create local workspace files, generate a Hermes profile config, launch a real structured process with `child_process.spawn`, record PID/status/log evidence, stop the stored PID, and open `/minions/[minionId]` as a local console route.
 - Minion runtime records persist through Prisma/Postgres when `DATABASE_URL` is configured and `MINIONMINT_FORCE_LOCAL_STORE` is not `true`. Local `.data/minion-runtimes.json` fallback remains available for dev and screenshot QA.
-- Owner credential setup persists encrypted vault references through Prisma/Postgres when configured, with local `.data/credential-setups.json` fallback for dev. Scaffolded refs are not launch-ready unless the explicit local supervisor override is set.
+- Owner credential setup persists generated `vault://local/...` or `vault://postgres/...` references through Prisma/Postgres when configured, with local `.data/credential-setups.json` fallback for dev. Submitted values are redacted in API/UI responses, optional local encryption uses `MINIONMINT_LOCAL_VAULT_KEY`, and scaffolded refs are not launch-ready unless the explicit local supervisor override is set.
 - Managed cloud-computer vendors remain optional adapters, not required dependencies.
 
 Self-hosted runtime supervisor environment:

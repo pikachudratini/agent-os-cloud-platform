@@ -99,6 +99,6 @@ Answered 2026-07-04: Clerk, Vercel plus managed Postgres, GPT-4o-mini or GPT-4.1
 
 ### 2026-07-05 Owner credential setup slice
 
-- Added the smallest owner credential setup loop for saving encrypted vault references through the dashboard without raw credential value fields.
-- Added CredentialSetup Prisma schema and local fallback storage for dev.
+- Added the smallest owner credential setup loop for saving generated vault references through the dashboard without raw credential value fields.
+- Added CredentialSetup Prisma schema and local fallback storage for dev, including credential type, allowed-use notes, redacted display values, optional local ciphertext, and value fingerprints.
 - Runtime launch now reads owner credential setup readiness and keeps scaffolded refs blocked unless the explicit local-dev override is set.

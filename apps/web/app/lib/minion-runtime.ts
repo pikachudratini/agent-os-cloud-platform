@@ -155,10 +155,10 @@ async function applyCredentialSetupReadiness(identity: CurrentUserIdentity, runt
     logs: [
       ...runtime.logs,
       ready
-        ? `Owner credential setup ready with ${setup.credentialRefs.length} encrypted vault reference${setup.credentialRefs.length === 1 ? '' : 's'}.`
-        : 'Owner credential setup exists but is not launch-ready because it is scaffolded or the vault provider is not production encrypted.',
+        ? `Owner credential setup ready with ${setup.credentialRefs.length} approved vault reference${setup.credentialRefs.length === 1 ? '' : 's'}.`
+        : 'Owner credential setup exists but is not launch-ready because it is scaffolded or the vault provider is not configured.',
     ],
-    nextMissingImplementationStep: ready ? runtime.nextMissingImplementationStep : 'Save encrypted credential references through owner credential setup before launching this Minion.',
+    nextMissingImplementationStep: ready ? runtime.nextMissingImplementationStep : 'Save owner-approved credential references through credential setup before launching this Minion.',
   };
 }
 
@@ -371,7 +371,7 @@ export async function applyRuntimeAction(identity: CurrentUserIdentity, action: 
       next.processSupervisor = processSupervisor('launch_blocked', now, { ...next.processSupervisor, lastSignal: 'launch_blocked' });
       next.logs.push('Launch blocked until approval rails, workspace prerequisites, and owner credential setup readiness are present. Scaffolded credential refs are not encrypted credentials.');
       next.nextMissingImplementationStep = credentialLaunchBlocked || (usesScaffoldedCredentialRefs && !devAllowsScaffoldedRefs)
-        ? 'Save encrypted credential references through owner credential setup, or set MINIONMINT_ALLOW_SCAFFOLDED_CREDENTIAL_REFS_FOR_DEV=true for local supervisor testing only.'
+        ? 'Save owner-approved credential references through credential setup, or set MINIONMINT_ALLOW_SCAFFOLDED_CREDENTIAL_REFS_FOR_DEV=true for local supervisor testing only.'
         : nextStepFromReadiness(readiness);
     } else {
       const supervisor = await launchSelfHostedRuntime(supervisorPaths);

@@ -56,14 +56,23 @@ assert.match(credentialStore, /CredentialSetupRecord/, 'credential setup must ha
 assert.match(credentialStore, /credential-setups\.json/, 'credential setup must preserve local fallback records');
 assert.match(credentialStore, /credentialSetup\.findMany/, 'credential setup must read Prisma rows when DATABASE_URL is configured');
 assert.match(credentialStore, /credentialSetup\.create/, 'credential setup must persist Prisma rows when DATABASE_URL is configured');
-assert.match(credentialStore, /isEncryptedCredentialRef/, 'credential setup must distinguish encrypted refs from scaffolded refs');
+assert.match(credentialStore, /credentialType: CredentialType/, 'credential setup must record provider-neutral credential type');
+assert.match(credentialStore, /allowedUse/, 'credential setup must record owner allowed-use notes');
+assert.match(credentialStore, /redactedValue/, 'credential setup must expose only redacted values');
+assert.match(credentialStore, /secretCiphertext/, 'credential setup may store encrypted local vault material when a key is configured');
+assert.match(credentialStore, /vaultRefFor/, 'credential setup must mint vault://local or vault://postgres refs instead of reusing submitted values');
+assert.match(credentialStore, /vault:\/\/local\//, 'local fallback credentials must use local vault refs');
+assert.match(credentialStore, /vault:\/\/postgres\//, 'Postgres credentials must use Postgres vault refs');
+assert.match(credentialStore, /isNonScaffoldCredentialRef/, 'credential setup must distinguish non-scaffold refs from scaffolded refs');
 assert.match(credentialStore, /local-dev-vault/, 'local-dev vault must not be treated as production encrypted');
 assert.match(runtime, /getCredentialSetupForMinion/, 'runtime launch must read owner credential setup state');
 assert.match(runtime, /isCredentialSetupLaunchReady/, 'runtime launch must use credential setup readiness before starting');
 assert.match(runtime, /owner credential setup readiness/, 'launch block log must name owner credential setup readiness');
-assert.match(credentialsRoute, /Paste an encrypted credential reference, not a raw key or password\./, 'API must reject missing encrypted refs with safe copy');
-assert.match(credentialPanel, /Encrypted vault reference/, 'dashboard must let the owner add credential references');
-assert.match(credentialPanel, /Raw keys never belong in this page/, 'dashboard must warn against raw credential values');
+assert.match(credentialsRoute, /returns redacted values only/, 'API must describe safe redacted responses');
+assert.match(credentialPanel, /Reference or secret value/, 'dashboard must let the owner add references or local values');
+assert.match(credentialPanel, /Credential type/, 'dashboard must include generic credential type selection');
+assert.match(credentialPanel, /Allowed use notes/, 'dashboard must include owner allowed-use notes');
+assert.match(credentialPanel, /redacted values only/, 'dashboard must warn that saved credential values are redacted');
 assert.doesNotMatch(credentialPanel, /secretValue|passwordValue|apiKeyValue|tokenValue/, 'dashboard credential setup must not expose raw credential value fields');
 
 assert.match(route, /Minion console/);
