@@ -18,7 +18,7 @@ Current Phase 1 includes:
 
 - Minion Blueprint onboarding and review.
 - Clerk auth shell with local fallback.
-- Prisma/Postgres schema and local file fallback.
+- Prisma/Postgres schema and local file fallback. Blueprint state uses Prisma when `DATABASE_URL` is configured. Runtime state now uses the same boundary for MinionRuntime rows when `DATABASE_URL` is configured, with local fallback preserved for dev and screenshots.
 - OpenAI-backed concierge when `OPENAI_API_KEY` is configured, with deterministic fallback otherwise.
 - Dashboard preview for phone, email, payment, apps, credentials, knowledge vault, observability, owner takeover, and approval rails.
 - Provider-neutral provisioning interface and status API that clearly report whether real provisioning is configured.
@@ -135,6 +135,7 @@ Current provisioning status:
 - A provider-neutral interface exists in `apps/web/app/lib/provisioning.ts`.
 - `/api/provisioning` reports readiness and returns a clear not-configured response when provider-neutral requirements are missing.
 - The self-hosted path can create local workspace files, generate a Hermes profile config, launch a real structured process with `child_process.spawn`, record PID/status/log evidence, stop the stored PID, and open `/minions/[minionId]` as a local console route.
+- Minion runtime records persist through Prisma/Postgres when `DATABASE_URL` is configured and `MINIONMINT_FORCE_LOCAL_STORE` is not `true`. Local `.data/minion-runtimes.json` fallback remains available for dev and screenshot QA.
 - Managed cloud-computer vendors remain optional adapters, not required dependencies.
 
 Self-hosted runtime supervisor environment:

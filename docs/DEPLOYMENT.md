@@ -15,7 +15,7 @@ Current app can:
 - create, refine, approve, save, and review Minion Blueprints,
 - preview planned identity surfaces for phone, email, payment, apps, credentials, workspace, knowledge vault, observability, and owner takeover,
 - report provider-neutral provisioning readiness through `/api/provisioning`,
-- run a first self-hosted runtime supervisor loop that creates workspace files, launches a configured local process, stores PID/status/log excerpts, stops the PID, and exposes a local Minion console route.
+- run a first self-hosted runtime supervisor loop that creates workspace files, launches a configured local process, stores PID/status/log excerpts, stops the PID, exposes a local Minion console route, and persists MinionRuntime records through Prisma when `DATABASE_URL` is configured.
 
 Current app cannot yet:
 
@@ -137,7 +137,7 @@ Required implementation before this tier is genuinely production-live:
 1. Secure credential setup flow that writes encrypted credential references only.
 2. Managed provider adapters behind the `ComputerProvider` or `WorkspaceProvider` interface.
 3. Production Hermes launch packaging, health checks, and tenant isolation around the self-hosted supervisor.
-4. Workspace status persistence through Prisma when `DATABASE_URL` is configured.
+4. Production health checks and tenant hardening around the self-hosted supervisor.
 5. Audit logs for provisioning attempts, provider errors, launches, stops, and owner takeover.
 
 Self-hosted runtime supervisor environment:
@@ -160,7 +160,7 @@ Current implementation:
 - Core methods include `checkReadiness`, `prepareWorkspace`, `launchWorkspace`, `stopWorkspace`, `getWorkspaceStatus`, `getAccessUrl`, `attachCredentials`, and `renderHermesConfig`.
 - `apps/web/app/api/provisioning/route.ts` exposes readiness, prepare, launch, status, and stop actions.
 - Dashboard displays the selected provider and blocks launch when provider-neutral requirements are missing.
-- The self-hosted adapter can launch a configured local process, record PID/status/logs, and open `/minions/[minionId]` as a local console route.
+- The self-hosted adapter can launch a configured local process, record PID/status/logs, persist MinionRuntime records through Prisma/Postgres when `DATABASE_URL` is configured, and open `/minions/[minionId]` as a local console route.
 - Managed cloud-computer vendors are documented only as adapter categories, not as required foundations.
 
 ## Safety rules

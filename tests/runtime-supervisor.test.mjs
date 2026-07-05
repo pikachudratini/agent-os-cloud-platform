@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 const supervisor = readFileSync('apps/web/app/lib/runtime-supervisor.ts', 'utf8');
 const runtime = readFileSync('apps/web/app/lib/minion-runtime.ts', 'utf8');
 const route = readFileSync('apps/web/app/minions/[minionId]/page.tsx', 'utf8');
+const runtimeStore = readFileSync('apps/web/app/lib/runtime-store.ts', 'utf8');
 
 assert.match(supervisor, /from 'node:child_process'/, 'supervisor must use Node child_process');
 assert.match(supervisor, /spawn\(/, 'launch must spawn a real process');
@@ -33,6 +34,20 @@ assert.match(runtime, /recentLogLines:\s*\[\]/, 'path reset must clear old recen
 assert.match(runtime, /startedAt:\s*null/, 'path reset must clear old startedAt');
 assert.match(runtime, /stoppedAt:\s*null/, 'path reset must clear old stoppedAt');
 assert.match(runtime, /sanitizeSupervisorForCurrentPaths\(next\)/, 'actions must sanitize stale supervisor state before status, stop, or launch');
+assert.match(runtime, /readRuntimeStoreForUser/, 'runtime transitions must read through runtime store abstraction');
+assert.match(runtime, /upsertRuntimeForUser/, 'runtime preparation must upsert through runtime store abstraction');
+assert.match(runtime, /updateRuntimeForUser/, 'runtime actions must persist through runtime store abstraction');
+assert.doesNotMatch(runtime, /minion-runtimes\.json/, 'minion-runtime should not directly own local fallback persistence');
+
+assert.match(runtimeStore, /PrismaClient/, 'runtime store must support Prisma Client');
+assert.match(runtimeStore, /DATABASE_URL/, 'runtime store must switch to Prisma when DATABASE_URL is configured');
+assert.match(runtimeStore, /MINIONMINT_FORCE_LOCAL_STORE/, 'runtime store must preserve forced local fallback');
+assert.match(runtimeStore, /client\.minionRuntime\.upsert/, 'runtime store must upsert MinionRuntime rows');
+assert.match(runtimeStore, /client\.minionRuntime\.update/, 'runtime store must update MinionRuntime rows after actions');
+assert.match(runtimeStore, /client\.minionRuntime\.findFirst/, 'runtime store must read MinionRuntime rows through tenant-scoped filters');
+assert.match(runtimeStore, /clerkUserId/, 'runtime store must resolve signed-in users by clerkUserId');
+assert.match(runtimeStore, /memberships/, 'runtime store must restrict reads to owner org memberships');
+assert.match(runtimeStore, /local_fallback/, 'runtime store must retain local fallback mode');
 
 assert.match(route, /Minion console/);
 assert.match(route, /Owner takeover/);

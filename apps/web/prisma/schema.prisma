@@ -96,6 +96,8 @@ model MinionRuntime {
   workspaceId                   String    @db.Uuid
   ownerUserId                   String
   blueprintId                   String
+  blueprintName                 String
+  minionId                      String
   providerType                  String
   workspaceStatus               String    @default("blueprint_ready")
   hermesTemplateRef             String?
@@ -103,6 +105,14 @@ model MinionRuntime {
   hermesConfigDraft             Json      @default("{}")
   logs                          Json      @default("[]")
   launchUrl                     String?
+  workspaceRoot                 String?
+  hermesProfilePath             String?
+  hermesConfigPath              String?
+  credentialVaultPath           String?
+  supervisorPath                String?
+  logPath                       String?
+  processSupervisor             Json      @default("{}")
+  availableActions              Json      @default("[]")
   nextMissingImplementationStep String
   createdAt                     DateTime  @default(now())
   updatedAt                     DateTime  @updatedAt
@@ -112,6 +122,7 @@ model MinionRuntime {
   @@index([orgId, updatedAt])
   @@index([workspaceId])
   @@index([ownerUserId])
+  @@unique([orgId, minionId])
 }
 
 model UsageEvent {

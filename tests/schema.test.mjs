@@ -11,6 +11,10 @@ assert.match(schema, /onboardingState/);
 assert.match(schema, /credentialVaultRefs/);
 assert.match(schema, /hermesConfigDraft/);
 assert.match(schema, /nextMissingImplementationStep/);
+for (const field of ['minionId', 'blueprintName', 'workspaceRoot', 'hermesProfilePath', 'hermesConfigPath', 'credentialVaultPath', 'supervisorPath', 'logPath', 'processSupervisor']) {
+  assert.match(schema, new RegExp(field), `MinionRuntime schema must include ${field}`);
+}
+assert.match(schema, /@@unique\(\[orgId, minionId\]\)/, 'MinionRuntime lookup should be unique inside an org');
 const rls = readFileSync('apps/web/prisma/migrations/0001_rls_plan.sql', 'utf8');
 assert.match(rls, /ENABLE ROW LEVEL SECURITY/);
 assert.match(rls, /app.current_org_id/);
@@ -18,6 +22,10 @@ const runtimeMigration = readFileSync('apps/web/prisma/migrations/0002_minion_ru
 assert.match(runtimeMigration, /CREATE TABLE IF NOT EXISTS "MinionRuntime"/);
 assert.match(runtimeMigration, /ENABLE ROW LEVEL SECURITY/);
 assert.match(runtimeMigration, /minion_runtime_org_isolation/);
+const runtimePersistenceMigration = readFileSync('apps/web/prisma/migrations/0003_minion_runtime_persistence.sql', 'utf8');
+assert.match(runtimePersistenceMigration, /ADD COLUMN IF NOT EXISTS "minionId"/);
+assert.match(runtimePersistenceMigration, /ADD COLUMN IF NOT EXISTS "processSupervisor"/);
+assert.match(runtimePersistenceMigration, /MinionRuntime_orgId_minionId_key/);
 
 const store = readFileSync('apps/web/app/lib/workspace-store.ts', 'utf8');
 assert.match(store, /DATABASE_URL/);

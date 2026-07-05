@@ -88,4 +88,11 @@ Answered 2026-07-04: Clerk, Vercel plus managed Postgres, GPT-4o-mini or GPT-4.1
 - Added per-Minion workspace, Hermes config, credential-ref, supervisor-state, and runtime-log files.
 - Added launch, status, and stop actions that operate on the real stored PID.
 - Added `/minions/[minionId]` as the local Minion console route with status, paths, logs, and owner takeover instructions.
-- Production credential-vault UI and Prisma runtime persistence remain next slices.
+- Production credential-vault UI remains a next slice.
+
+### 2026-07-04 Prisma runtime persistence slice
+
+- Added a runtime store abstraction that keeps local fallback for dev and uses Prisma/Postgres when `DATABASE_URL` is configured.
+- Added MinionRuntime persistence fields for minion ID, blueprint name, workspace/config paths, supervisor/log paths, process supervisor JSON, and available actions.
+- Added a migration for full MinionRuntime persistence fields and org-scoped unique lookup by Minion ID.
+- Dashboard and Minion console runtime reads now go through the runtime store boundary.

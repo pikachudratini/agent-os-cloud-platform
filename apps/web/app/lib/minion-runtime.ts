@@ -1,9 +1,10 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { CurrentUserIdentity } from './current-user';
 import type { OnboardingPlan } from './onboarding';
 import { buildHermesConfigPreview, getProvisioningReadiness, type ComputerProviderName, type ProvisioningReadiness } from './provisioning';
 import { checkSelfHostedRuntimeStatus, emptySupervisorState, launchSelfHostedRuntime, stopSelfHostedRuntime, type RuntimeSupervisorState } from './runtime-supervisor';
+import { getRuntimeByMinionIdFromStore, readRuntimeStoreForUser, updateRuntimeForUser, upsertRuntimeForUser } from './runtime-store';
 
 export type RuntimeAction = 'prepare_workspace' | 'generate_config' | 'launch_minion' | 'open_workspace' | 'stop_minion' | 'status_check';
 export type RuntimeStatus = 'blueprint_ready' | 'workspace_prepared' | 'config_generated' | 'launch_blocked' | 'running' | 'stopped';
@@ -50,8 +51,6 @@ export type MinionRuntimeRecord = {
   updatedAt: string;
 };
 
-type RuntimeStore = { runtimes: MinionRuntimeRecord[] };
-
 type RuntimePaths = {
   workspaceRoot: string;
   hermesProfilePath: string;
@@ -60,8 +59,6 @@ type RuntimePaths = {
   supervisorPath: string;
   logPath: string;
 };
-
-const runtimeStorePath = path.join(process.cwd(), '.data', 'minion-runtimes.json');
 
 function slugify(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'minion-runtime';
@@ -87,20 +84,6 @@ function buildRuntimePaths(ownerUserId: string, minionId: string): RuntimePaths 
 
 function workspaceUrlFor(minionId: string) {
   return `/minions/${encodeURIComponent(minionId)}`;
-}
-
-async function readRuntimeStore(): Promise<RuntimeStore> {
-  try {
-    const parsed = JSON.parse(await readFile(runtimeStorePath, 'utf8')) as RuntimeStore;
-    return { runtimes: parsed.runtimes.map(normalizeRuntimeRecord) };
-  } catch {
-    return { runtimes: [] };
-  }
-}
-
-async function writeRuntimeStore(store: RuntimeStore) {
-  await mkdir(path.dirname(runtimeStorePath), { recursive: true });
-  await writeFile(runtimeStorePath, JSON.stringify(store, null, 2));
 }
 
 function processSupervisor(status: RuntimeProcessSupervisor['status'], now: string, existing?: RuntimeProcessSupervisor): RuntimeProcessSupervisor {
@@ -300,56 +283,49 @@ async function writeSelfHostedRuntimeFiles(runtime: MinionRuntimeRecord): Promis
 }
 
 export async function prepareRuntimeForBlueprint(identity: CurrentUserIdentity, blueprint: OnboardingPlan & { id?: string }): Promise<MinionRuntimeRecord> {
-  const store = await readRuntimeStore();
+  const store = await readRuntimeStoreForUser(identity);
   const readiness = getProvisioningReadiness();
   const blueprintId = blueprint.id || slugify(blueprint.projectName);
-  const existingIndex = store.runtimes.findIndex((runtime) => runtime.ownerUserId === identity.userId && runtime.blueprintId === blueprintId);
+  const existing = store.runtimes.find((runtime) => runtime.ownerUserId === identity.userId && runtime.blueprintId === blueprintId);
   let next = buildInitialRuntimeRecord(identity, blueprint, blueprintId, readiness);
-  if (existingIndex >= 0) {
-    const existing = store.runtimes[existingIndex];
-    const pathChanged = runtimePathSignature(existing) !== runtimePathSignature(next);
-    next.id = existing.id;
-    next.createdAt = existing.createdAt;
-    next.logs = [...existing.logs, ...next.logs.slice(1)];
-    next.processSupervisor = pathChanged ? next.processSupervisor : existing.processSupervisor;
+  if (existing) {
+    const normalizedExisting = normalizeRuntimeRecord(existing);
+    const pathChanged = runtimePathSignature(normalizedExisting) !== runtimePathSignature(next);
+    next.id = normalizedExisting.id;
+    next.createdAt = normalizedExisting.createdAt;
+    next.logs = [...normalizedExisting.logs, ...next.logs.slice(1)];
+    next.processSupervisor = pathChanged ? next.processSupervisor : normalizedExisting.processSupervisor;
     if (pathChanged) next = resetSupervisorForPathChange(next);
   }
   if (next.providerType === 'self_hosted') next = await writeSelfHostedRuntimeFiles(next);
   next.availableActions = actionsForStatus(next.workspaceStatus, readiness);
-  if (existingIndex >= 0) {
-    store.runtimes[existingIndex] = next;
-  } else {
-    store.runtimes.push(next);
-  }
-  await writeRuntimeStore(store);
-  return next;
+  return upsertRuntimeForUser(identity, next);
 }
 
 export async function getLatestRuntimeForUser(identity: CurrentUserIdentity): Promise<MinionRuntimeRecord | null> {
-  const store = await readRuntimeStore();
-  return store.runtimes.filter((runtime) => runtime.ownerUserId === identity.userId).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0] ?? null;
+  const store = await readRuntimeStoreForUser(identity);
+  return store.runtimes.map(normalizeRuntimeRecord).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0] ?? null;
 }
 
 export async function getRuntimeByMinionId(identity: CurrentUserIdentity, minionId: string): Promise<MinionRuntimeRecord | null> {
-  const store = await readRuntimeStore();
-  let runtime = store.runtimes.find((item) => item.ownerUserId === identity.userId && item.minionId === minionId) ?? null;
+  let runtime = await getRuntimeByMinionIdFromStore(identity, minionId);
   if (!runtime) return null;
-  runtime = sanitizeSupervisorForCurrentPaths(runtime);
+  runtime = sanitizeSupervisorForCurrentPaths(normalizeRuntimeRecord(runtime));
   const supervisorPaths = supervisorPathsFromRuntime(runtime);
   if (!supervisorPaths) return runtime;
   const supervisor = await checkSelfHostedRuntimeStatus(supervisorPaths);
-  return {
+  const next: MinionRuntimeRecord = {
     ...runtime,
     processSupervisor: supervisor,
     workspaceStatus: supervisor.status === 'running' ? 'running' : supervisor.status === 'launch_blocked' ? 'launch_blocked' : supervisor.status === 'stopped' || supervisor.status === 'exited' ? 'stopped' : runtime.workspaceStatus,
   };
+  return updateRuntimeForUser(identity, next);
 }
 
 export async function applyRuntimeAction(identity: CurrentUserIdentity, action: RuntimeAction): Promise<MinionRuntimeRecord | null> {
-  const store = await readRuntimeStore();
-  const index = store.runtimes.findIndex((runtime) => runtime.ownerUserId === identity.userId);
-  if (index < 0) return null;
-  const runtime = store.runtimes[index];
+  const store = await readRuntimeStoreForUser(identity);
+  const runtime = store.runtimes.map(normalizeRuntimeRecord).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0] ?? null;
+  if (!runtime) return null;
   const readiness = getProvisioningReadiness();
   const now = new Date().toISOString();
   let next: MinionRuntimeRecord = { ...runtime, logs: [...runtime.logs], updatedAt: now };
@@ -399,7 +375,5 @@ export async function applyRuntimeAction(identity: CurrentUserIdentity, action: 
   }
 
   next.availableActions = actionsForStatus(next.workspaceStatus, readiness);
-  store.runtimes[index] = next;
-  await writeRuntimeStore(store);
-  return next;
+  return updateRuntimeForUser(identity, next);
 }
