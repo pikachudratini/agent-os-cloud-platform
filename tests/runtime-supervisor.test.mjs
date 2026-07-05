@@ -24,6 +24,15 @@ assert.match(runtime, /workspaceUrlFor\(minionId\)/, 'Open Minion must use an ap
 assert.doesNotMatch(runtime, /file:\/\//, 'runtime open URL must not be only a file URL');
 assert.match(runtime, /Scaffolded credential refs are not encrypted/, 'scaffolded credential refs must not be treated as secure');
 assert.match(runtime, /MINIONMINT_ALLOW_SCAFFOLDED_CREDENTIAL_REFS_FOR_DEV/, 'dev-only scaffolded credential launch must be explicit');
+assert.match(runtime, /runtimePathSignature/, 'runtime must compute a path signature for stale-state detection');
+assert.match(runtime, /supervisorStateMatchesRuntimePaths/, 'runtime must compare stored supervisor paths with current runtime paths');
+assert.match(runtime, /resetSupervisorForPathChange/, 'runtime must reset stale supervisor state after path changes');
+assert.match(runtime, /Runtime workspace path changed; supervisor state reset for safety\./, 'runtime must log path-change reset');
+assert.match(runtime, /pid:\s*null/, 'path reset must clear old PID');
+assert.match(runtime, /recentLogLines:\s*\[\]/, 'path reset must clear old recent log lines');
+assert.match(runtime, /startedAt:\s*null/, 'path reset must clear old startedAt');
+assert.match(runtime, /stoppedAt:\s*null/, 'path reset must clear old stoppedAt');
+assert.match(runtime, /sanitizeSupervisorForCurrentPaths\(next\)/, 'actions must sanitize stale supervisor state before status, stop, or launch');
 
 assert.match(route, /Minion console/);
 assert.match(route, /Owner takeover/);

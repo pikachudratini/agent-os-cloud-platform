@@ -235,6 +235,43 @@ function supervisorPathsFromRuntime(runtime: MinionRuntimeRecord) {
   return { ...paths, minionId: runtime.minionId };
 }
 
+function runtimePathSignature(runtime: MinionRuntimeRecord) {
+  const paths = pathsFromRuntime(runtime);
+  if (!paths) return 'no-self-hosted-paths';
+  return [paths.workspaceRoot, paths.hermesProfilePath, paths.hermesConfigPath, paths.credentialVaultPath, paths.supervisorPath, paths.logPath].join('|');
+}
+
+function supervisorStateMatchesRuntimePaths(runtime: MinionRuntimeRecord) {
+  const paths = pathsFromRuntime(runtime);
+  if (!paths) return true;
+  const state = runtime.processSupervisor;
+  if (!state.logPath && !state.pid && !state.startedAt && !state.stoppedAt && !state.launchCommand) return true;
+  return state.logPath === paths.logPath;
+}
+
+function resetSupervisorForPathChange(runtime: MinionRuntimeRecord): MinionRuntimeRecord {
+  const paths = pathsFromRuntime(runtime);
+  const reset = emptySupervisorState(new Date().toISOString());
+  return {
+    ...runtime,
+    workspaceStatus: runtime.workspaceStatus === 'running' || runtime.workspaceStatus === 'stopped' ? 'workspace_prepared' : runtime.workspaceStatus,
+    processSupervisor: {
+      ...reset,
+      logPath: paths?.logPath ?? null,
+      pid: null,
+      recentLogLines: [],
+      startedAt: null,
+      stoppedAt: null,
+      launchCommand: null,
+    },
+    logs: [...runtime.logs, 'Runtime workspace path changed; supervisor state reset for safety.'],
+  };
+}
+
+function sanitizeSupervisorForCurrentPaths(runtime: MinionRuntimeRecord): MinionRuntimeRecord {
+  return supervisorStateMatchesRuntimePaths(runtime) ? runtime : resetSupervisorForPathChange(runtime);
+}
+
 async function writeSelfHostedRuntimeFiles(runtime: MinionRuntimeRecord): Promise<MinionRuntimeRecord> {
   const paths = pathsFromRuntime(runtime);
   if (!paths) return runtime;
@@ -250,7 +287,7 @@ async function writeSelfHostedRuntimeFiles(runtime: MinionRuntimeRecord): Promis
     refs: runtime.credentialVaultRefs,
     updatedAt: now,
   }, null, 2));
-  const supervisor = processSupervisor(runtime.processSupervisor.status, now, runtime.processSupervisor);
+  const supervisor = { ...processSupervisor(runtime.processSupervisor.status, now, runtime.processSupervisor), logPath: paths.logPath };
   await writeFile(paths.supervisorPath, JSON.stringify(supervisor, null, 2));
   return {
     ...runtime,
@@ -269,10 +306,13 @@ export async function prepareRuntimeForBlueprint(identity: CurrentUserIdentity, 
   const existingIndex = store.runtimes.findIndex((runtime) => runtime.ownerUserId === identity.userId && runtime.blueprintId === blueprintId);
   let next = buildInitialRuntimeRecord(identity, blueprint, blueprintId, readiness);
   if (existingIndex >= 0) {
-    next.id = store.runtimes[existingIndex].id;
-    next.createdAt = store.runtimes[existingIndex].createdAt;
-    next.processSupervisor = store.runtimes[existingIndex].processSupervisor;
-    next.logs = [...store.runtimes[existingIndex].logs, ...next.logs.slice(1)];
+    const existing = store.runtimes[existingIndex];
+    const pathChanged = runtimePathSignature(existing) !== runtimePathSignature(next);
+    next.id = existing.id;
+    next.createdAt = existing.createdAt;
+    next.logs = [...existing.logs, ...next.logs.slice(1)];
+    next.processSupervisor = pathChanged ? next.processSupervisor : existing.processSupervisor;
+    if (pathChanged) next = resetSupervisorForPathChange(next);
   }
   if (next.providerType === 'self_hosted') next = await writeSelfHostedRuntimeFiles(next);
   next.availableActions = actionsForStatus(next.workspaceStatus, readiness);
@@ -292,8 +332,9 @@ export async function getLatestRuntimeForUser(identity: CurrentUserIdentity): Pr
 
 export async function getRuntimeByMinionId(identity: CurrentUserIdentity, minionId: string): Promise<MinionRuntimeRecord | null> {
   const store = await readRuntimeStore();
-  const runtime = store.runtimes.find((item) => item.ownerUserId === identity.userId && item.minionId === minionId) ?? null;
+  let runtime = store.runtimes.find((item) => item.ownerUserId === identity.userId && item.minionId === minionId) ?? null;
   if (!runtime) return null;
+  runtime = sanitizeSupervisorForCurrentPaths(runtime);
   const supervisorPaths = supervisorPathsFromRuntime(runtime);
   if (!supervisorPaths) return runtime;
   const supervisor = await checkSelfHostedRuntimeStatus(supervisorPaths);
@@ -312,6 +353,7 @@ export async function applyRuntimeAction(identity: CurrentUserIdentity, action: 
   const readiness = getProvisioningReadiness();
   const now = new Date().toISOString();
   let next: MinionRuntimeRecord = { ...runtime, logs: [...runtime.logs], updatedAt: now };
+  next = sanitizeSupervisorForCurrentPaths(next);
 
   if (action === 'prepare_workspace' || action === 'generate_config') {
     next = await writeSelfHostedRuntimeFiles(next);
