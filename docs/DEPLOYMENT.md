@@ -15,7 +15,8 @@ Current app can:
 - create, refine, approve, save, and review Minion Blueprints,
 - preview planned identity surfaces for phone, email, payment, apps, credentials, workspace, knowledge vault, observability, and owner takeover,
 - report provider-neutral provisioning readiness through `/api/provisioning`,
-- run a first self-hosted runtime supervisor loop that creates workspace files, launches a configured local process, stores PID/status/log excerpts, stops the PID, exposes a local Minion console route, and persists MinionRuntime records through Prisma when `DATABASE_URL` is configured.
+- run a first self-hosted runtime supervisor loop that creates workspace files, launches a configured local process, stores PID/status/log excerpts, stops the PID, exposes a local Minion console route, and persists MinionRuntime records through Prisma when `DATABASE_URL` is configured,
+- let an owner save encrypted credential references through the dashboard and persist CredentialSetup records through Prisma when `DATABASE_URL` is configured.
 
 Current app cannot yet:
 
@@ -134,7 +135,7 @@ Owned or self-hosted provider requirements:
 
 Required implementation before this tier is genuinely production-live:
 
-1. Secure credential setup flow that writes encrypted credential references only.
+1. Production credential vault provider that turns owner setup into encrypted references managed fully inside MinionMint.
 2. Managed provider adapters behind the `ComputerProvider` or `WorkspaceProvider` interface.
 3. Production Hermes launch packaging, health checks, and tenant isolation around the self-hosted supervisor.
 4. Production health checks and tenant hardening around the self-hosted supervisor.

@@ -96,3 +96,9 @@ Answered 2026-07-04: Clerk, Vercel plus managed Postgres, GPT-4o-mini or GPT-4.1
 - Added MinionRuntime persistence fields for minion ID, blueprint name, workspace/config paths, supervisor/log paths, process supervisor JSON, and available actions.
 - Added a migration for full MinionRuntime persistence fields and org-scoped unique lookup by Minion ID.
 - Dashboard and Minion console runtime reads now go through the runtime store boundary.
+
+### 2026-07-05 Owner credential setup slice
+
+- Added the smallest owner credential setup loop for saving encrypted vault references through the dashboard without raw credential value fields.
+- Added CredentialSetup Prisma schema and local fallback storage for dev.
+- Runtime launch now reads owner credential setup readiness and keeps scaffolded refs blocked unless the explicit local-dev override is set.

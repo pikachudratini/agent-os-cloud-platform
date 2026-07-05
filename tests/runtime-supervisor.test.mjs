@@ -5,6 +5,9 @@ const supervisor = readFileSync('apps/web/app/lib/runtime-supervisor.ts', 'utf8'
 const runtime = readFileSync('apps/web/app/lib/minion-runtime.ts', 'utf8');
 const route = readFileSync('apps/web/app/minions/[minionId]/page.tsx', 'utf8');
 const runtimeStore = readFileSync('apps/web/app/lib/runtime-store.ts', 'utf8');
+const credentialStore = readFileSync('apps/web/app/lib/credential-store.ts', 'utf8');
+const credentialsRoute = readFileSync('apps/web/app/api/credentials/route.ts', 'utf8');
+const credentialPanel = readFileSync('apps/web/app/dashboard/credential-setup-panel.tsx', 'utf8');
 
 assert.match(supervisor, /from 'node:child_process'/, 'supervisor must use Node child_process');
 assert.match(supervisor, /spawn\(/, 'launch must spawn a real process');
@@ -48,6 +51,20 @@ assert.match(runtimeStore, /client\.minionRuntime\.findFirst/, 'runtime store mu
 assert.match(runtimeStore, /clerkUserId/, 'runtime store must resolve signed-in users by clerkUserId');
 assert.match(runtimeStore, /memberships/, 'runtime store must restrict reads to owner org memberships');
 assert.match(runtimeStore, /local_fallback/, 'runtime store must retain local fallback mode');
+
+assert.match(credentialStore, /CredentialSetupRecord/, 'credential setup must have a durable owner state model');
+assert.match(credentialStore, /credential-setups\.json/, 'credential setup must preserve local fallback records');
+assert.match(credentialStore, /credentialSetup\.findMany/, 'credential setup must read Prisma rows when DATABASE_URL is configured');
+assert.match(credentialStore, /credentialSetup\.create/, 'credential setup must persist Prisma rows when DATABASE_URL is configured');
+assert.match(credentialStore, /isEncryptedCredentialRef/, 'credential setup must distinguish encrypted refs from scaffolded refs');
+assert.match(credentialStore, /local-dev-vault/, 'local-dev vault must not be treated as production encrypted');
+assert.match(runtime, /getCredentialSetupForMinion/, 'runtime launch must read owner credential setup state');
+assert.match(runtime, /isCredentialSetupLaunchReady/, 'runtime launch must use credential setup readiness before starting');
+assert.match(runtime, /owner credential setup readiness/, 'launch block log must name owner credential setup readiness');
+assert.match(credentialsRoute, /Paste an encrypted credential reference, not a raw key or password\./, 'API must reject missing encrypted refs with safe copy');
+assert.match(credentialPanel, /Encrypted vault reference/, 'dashboard must let the owner add credential references');
+assert.match(credentialPanel, /Raw keys never belong in this page/, 'dashboard must warn against raw credential values');
+assert.doesNotMatch(credentialPanel, /secretValue|passwordValue|apiKeyValue|tokenValue/, 'dashboard credential setup must not expose raw credential value fields');
 
 assert.match(route, /Minion console/);
 assert.match(route, /Owner takeover/);

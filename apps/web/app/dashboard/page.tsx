@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { RuntimeActions } from './runtime-actions';
+import { CredentialSetupPanel } from './credential-setup-panel';
 import { getCurrentUserIdentity } from '../lib/current-user';
+import { getCredentialSetupsForUser } from '../lib/credential-store';
 import { getProvisioningReadiness } from '../lib/provisioning';
 import { buildInitialRuntimeRecord, getLatestRuntimeForUser } from '../lib/minion-runtime';
 import { getLatestWorkspaceForUser } from '../lib/workspace-store';
@@ -13,6 +15,7 @@ export default async function DashboardPage() {
   const identity = await getCurrentUserIdentity();
   const workspace = await getLatestWorkspaceForUser(identity);
   const savedRuntime = await getLatestRuntimeForUser(identity);
+  const credentialSetups = await getCredentialSetupsForUser(identity);
   const plan = workspace;
   const status = plan?.status.replaceAll('_', ' ') ?? 'no blueprint';
   const ownerReviewState = plan?.ownerReviewState.replaceAll('_', ' ') ?? 'not started';
@@ -64,6 +67,7 @@ export default async function DashboardPage() {
               <details><summary>Runtime logs</summary><ul>{runtime.logs.map((entry) => <li key={entry}>{entry}</li>)}</ul></details>
             </article>
           )}
+          {runtime && <CredentialSetupPanel minionId={runtime.minionId} setups={credentialSetups.filter((setup) => setup.minionId === runtime.minionId)} />}
           {runtime && (
             <article className="card stack wide-card"><h2>Hermes config draft</h2><pre className="config-preview">{JSON.stringify(runtime.hermesConfigDraft, null, 2)}</pre></article>
           )}

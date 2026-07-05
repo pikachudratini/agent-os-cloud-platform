@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const schema = readFileSync('apps/web/prisma/schema.prisma', 'utf8');
-for (const model of ['Organization', 'User', 'Membership', 'Workspace', 'AuditLog', 'MinionRuntime', 'UsageEvent']) {
+for (const model of ['Organization', 'User', 'Membership', 'Workspace', 'AuditLog', 'MinionRuntime', 'CredentialSetup', 'UsageEvent']) {
   assert.match(schema, new RegExp(`model ${model}`));
 }
 assert.match(schema, /provider = "postgresql"/);
@@ -26,6 +26,14 @@ const runtimePersistenceMigration = readFileSync('apps/web/prisma/migrations/000
 assert.match(runtimePersistenceMigration, /ADD COLUMN IF NOT EXISTS "minionId"/);
 assert.match(runtimePersistenceMigration, /ADD COLUMN IF NOT EXISTS "processSupervisor"/);
 assert.match(runtimePersistenceMigration, /MinionRuntime_orgId_minionId_key/);
+const credentialSetupMigration = readFileSync('apps/web/prisma/migrations/0004_credential_setup.sql', 'utf8');
+assert.match(credentialSetupMigration, /CREATE TABLE IF NOT EXISTS "CredentialSetup"/);
+assert.match(credentialSetupMigration, /"credentialRefs" jsonb NOT NULL DEFAULT '\[\]'::jsonb/);
+assert.match(credentialSetupMigration, /"encrypted" boolean NOT NULL DEFAULT false/);
+assert.match(credentialSetupMigration, /CredentialSetup_orgId_minionId_key/);
+assert.match(credentialSetupMigration, /credential_setup_org_isolation/);
+assert.match(schema, /credentialSetups CredentialSetup\[\]/);
+assert.match(schema, /@@unique\(\[orgId, minionId\]\)/, 'CredentialSetup lookup should be unique inside an org');
 
 const store = readFileSync('apps/web/app/lib/workspace-store.ts', 'utf8');
 assert.match(store, /DATABASE_URL/);
