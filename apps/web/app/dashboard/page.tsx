@@ -64,7 +64,7 @@ export default async function DashboardPage() {
               <p><strong>Process supervisor:</strong> {runtime.processSupervisor.status}</p>
               <p><strong>Credential vault refs:</strong> {runtime.credentialVaultRefs.join(', ')}</p>
               <RuntimeActions actions={runtime.availableActions} workspaceUrl={runtime.workspaceUrl} missingStep={runtime.nextMissingImplementationStep} />
-              <details><summary>Runtime logs</summary><ul>{runtime.logs.map((entry) => <li key={entry}>{entry}</li>)}</ul></details>
+              <details><summary>Runtime logs</summary><ul>{runtime.logs.map((entry, index) => <li key={`${index}-${entry}`}>{entry}</li>)}</ul></details>
             </article>
           )}
           {runtime && <CredentialSetupPanel minionId={runtime.minionId} setups={credentialSetups.filter((setup) => setup.minionId === runtime.minionId)} />}

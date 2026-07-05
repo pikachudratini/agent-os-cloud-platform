@@ -31,6 +31,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Paste a credential reference or value. MinionMint stores a vault reference and returns redacted values only.' }, { status: 400 });
   }
 
-  const credentialSetup = await saveCredentialSetupForUser(identity, { minionId, displayName, credentialType, credentialValue, allowedUse });
-  return NextResponse.json({ credentialSetup }, { status: 201 });
+  try {
+    const credentialSetup = await saveCredentialSetupForUser(identity, { minionId, displayName, credentialType, credentialValue, allowedUse });
+    return NextResponse.json({ credentialSetup }, { status: 201 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Credential setup failed.';
+    const isValidationError = /Minion ID|required|credential references/i.test(message);
+    const isAuthorizationError = /authorized workspace|owner scope|authorized/i.test(message);
+    return NextResponse.json(
+      { error: isValidationError || isAuthorizationError ? message : 'Credential setup failed. Check credential vault configuration and try again.' },
+      { status: isAuthorizationError ? 403 : isValidationError ? 400 : 500 },
+    );
+  }
 }

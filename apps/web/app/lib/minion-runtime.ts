@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { CurrentUserIdentity } from './current-user';
-import { getCredentialSetupForMinion, isCredentialSetupLaunchReady } from './credential-store';
+import { credentialReadinessFor, getCredentialSetupForMinion, isCredentialSetupLaunchReady, type CredentialSetupRecord } from './credential-store';
 import type { OnboardingPlan } from './onboarding';
 import { buildHermesConfigPreview, getProvisioningReadiness, type ComputerProviderName, type ProvisioningReadiness } from './provisioning';
 import { checkSelfHostedRuntimeStatus, emptySupervisorState, launchSelfHostedRuntime, stopSelfHostedRuntime, type RuntimeSupervisorState } from './runtime-supervisor';
@@ -144,8 +144,8 @@ function actionsForStatus(status: RuntimeStatus, readiness: ProvisioningReadines
   return actions;
 }
 
-async function applyCredentialSetupReadiness(identity: CurrentUserIdentity, runtime: MinionRuntimeRecord): Promise<MinionRuntimeRecord> {
-  const setup = await getCredentialSetupForMinion(identity, runtime.minionId);
+async function applyCredentialSetupReadiness(identity: CurrentUserIdentity, runtime: MinionRuntimeRecord, setup?: CredentialSetupRecord | null): Promise<MinionRuntimeRecord> {
+  setup ??= await getCredentialSetupForMinion(identity, runtime.minionId);
   if (!setup?.credentialRefs.length) return runtime;
   const ready = isCredentialSetupLaunchReady(setup);
   return {
@@ -156,7 +156,7 @@ async function applyCredentialSetupReadiness(identity: CurrentUserIdentity, runt
       ...runtime.logs,
       ready
         ? `Owner credential setup ready with ${setup.credentialRefs.length} approved vault reference${setup.credentialRefs.length === 1 ? '' : 's'}.`
-        : 'Owner credential setup exists but is not launch-ready because it is scaffolded or the vault provider is not configured.',
+        : 'Owner credential setup exists but is not launch-ready because it is scaffolded, unencrypted, or the vault provider is not configured.',
     ],
     nextMissingImplementationStep: ready ? runtime.nextMissingImplementationStep : 'Save owner-approved credential references through credential setup before launching this Minion.',
   };
@@ -274,7 +274,25 @@ function sanitizeSupervisorForCurrentPaths(runtime: MinionRuntimeRecord): Minion
   return supervisorStateMatchesRuntimePaths(runtime) ? runtime : resetSupervisorForPathChange(runtime);
 }
 
-async function writeSelfHostedRuntimeFiles(runtime: MinionRuntimeRecord): Promise<MinionRuntimeRecord> {
+function credentialVaultMetadataFor(runtime: MinionRuntimeRecord, setup?: CredentialSetupRecord | null) {
+  const refs = setup?.credentialRefs.length ? setup.credentialRefs : runtime.credentialVaultRefs;
+  const provider = setup?.vaultProvider || process.env.MINIONMINT_CREDENTIAL_VAULT_PROVIDER || 'scaffolded-local-refs';
+  const encrypted = Boolean(setup?.encrypted);
+  const readiness = setup?.readiness || credentialReadinessFor(refs, provider, encrypted);
+  const metadata: Record<string, unknown> = {
+    provider,
+    encrypted,
+    readiness,
+    refs,
+    updatedAt: new Date().toISOString(),
+  };
+  if (readiness !== 'ready' || !encrypted) {
+    metadata.note = 'Scaffolded or unencrypted credential refs are not encrypted credentials. Configure an encrypted credential vault before production launch.';
+  }
+  return metadata;
+}
+
+async function writeSelfHostedRuntimeFiles(runtime: MinionRuntimeRecord, credentialSetup?: CredentialSetupRecord | null): Promise<MinionRuntimeRecord> {
   const paths = pathsFromRuntime(runtime);
   if (!paths) return runtime;
   const now = new Date().toISOString();
@@ -282,13 +300,7 @@ async function writeSelfHostedRuntimeFiles(runtime: MinionRuntimeRecord): Promis
   await mkdir(runtime.hermesProfilePath as string, { recursive: true });
   await mkdir(path.dirname(runtime.credentialVaultPath as string), { recursive: true });
   await writeFile(runtime.hermesConfigPath as string, JSON.stringify(renderHermesProfileConfig(runtime), null, 2));
-  await writeFile(runtime.credentialVaultPath as string, JSON.stringify({
-    provider: process.env.MINIONMINT_CREDENTIAL_VAULT_PROVIDER || 'scaffolded-local-refs',
-    encrypted: false,
-    note: 'Scaffolded credential refs are not encrypted credentials. Configure a real credential vault before production launch.',
-    refs: runtime.credentialVaultRefs,
-    updatedAt: now,
-  }, null, 2));
+  await writeFile(runtime.credentialVaultPath as string, JSON.stringify(credentialVaultMetadataFor(runtime, credentialSetup), null, 2));
   const supervisor = { ...processSupervisor(runtime.processSupervisor.status, now, runtime.processSupervisor), logPath: paths.logPath };
   await writeFile(paths.supervisorPath, JSON.stringify(supervisor, null, 2));
   return {
@@ -296,7 +308,7 @@ async function writeSelfHostedRuntimeFiles(runtime: MinionRuntimeRecord): Promis
     workspaceStatus: 'config_generated',
     processSupervisor: supervisor,
     workspaceUrl: runtime.workspaceUrl || workspaceUrlFor(runtime.minionId),
-    logs: [...runtime.logs, `Prepared self-hosted workspace directory at ${runtime.workspaceRoot}.`, 'Generated real per-Minion Hermes profile and scaffolded credential vault refs.'],
+    logs: [...runtime.logs, `Prepared self-hosted workspace directory at ${runtime.workspaceRoot}.`, credentialSetup && isCredentialSetupLaunchReady(credentialSetup) ? 'Generated real per-Minion Hermes profile and encrypted credential vault refs metadata.' : 'Generated real per-Minion Hermes profile and scaffolded credential vault refs.'],
     updatedAt: now,
   };
 }
@@ -316,8 +328,9 @@ export async function prepareRuntimeForBlueprint(identity: CurrentUserIdentity, 
     next.processSupervisor = pathChanged ? next.processSupervisor : normalizedExisting.processSupervisor;
     if (pathChanged) next = resetSupervisorForPathChange(next);
   }
-  next = await applyCredentialSetupReadiness(identity, next);
-  if (next.providerType === 'self_hosted') next = await writeSelfHostedRuntimeFiles(next);
+  const credentialSetup = await getCredentialSetupForMinion(identity, next.minionId);
+  next = await applyCredentialSetupReadiness(identity, next, credentialSetup);
+  if (next.providerType === 'self_hosted') next = await writeSelfHostedRuntimeFiles(next, credentialSetup);
   next.availableActions = actionsForStatus(next.workspaceStatus, readiness);
   return upsertRuntimeForUser(identity, next);
 }
@@ -352,7 +365,9 @@ export async function applyRuntimeAction(identity: CurrentUserIdentity, action: 
   next = sanitizeSupervisorForCurrentPaths(next);
 
   if (action === 'prepare_workspace' || action === 'generate_config') {
-    next = await writeSelfHostedRuntimeFiles(next);
+    const credentialSetup = await getCredentialSetupForMinion(identity, next.minionId);
+    next = await applyCredentialSetupReadiness(identity, next, credentialSetup);
+    next = await writeSelfHostedRuntimeFiles(next, credentialSetup);
   }
 
   if (action === 'launch_minion') {
@@ -374,6 +389,7 @@ export async function applyRuntimeAction(identity: CurrentUserIdentity, action: 
         ? 'Save owner-approved credential references through credential setup, or set MINIONMINT_ALLOW_SCAFFOLDED_CREDENTIAL_REFS_FOR_DEV=true for local supervisor testing only.'
         : nextStepFromReadiness(readiness);
     } else {
+      next = await writeSelfHostedRuntimeFiles(next, credentialSetup);
       const supervisor = await launchSelfHostedRuntime(supervisorPaths);
       next.processSupervisor = supervisor;
       next.workspaceStatus = supervisor.status === 'running' ? 'running' : 'launch_blocked';

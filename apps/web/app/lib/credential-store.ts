@@ -120,10 +120,15 @@ export function isEncryptedCredentialRef(ref: string) {
   return normalized.startsWith('vault://encrypted/') || normalized.startsWith('op://') || normalized.startsWith('aws-secretsmanager://') || normalized.startsWith('gcp-secret-manager://');
 }
 
-export function credentialReadinessFor(refs: string[], provider = process.env.MINIONMINT_CREDENTIAL_VAULT_PROVIDER || ''): CredentialSetupReadiness {
+function refsUseExternalEncryptedManager(refs: string[]) {
+  return refs.length > 0 && refs.every(isEncryptedCredentialRef);
+}
+
+export function credentialReadinessFor(refs: string[], provider = process.env.MINIONMINT_CREDENTIAL_VAULT_PROVIDER || '', encrypted = false): CredentialSetupReadiness {
   if (!refs.length) return 'missing';
+  if (refsUseExternalEncryptedManager(refs)) return 'ready';
   if (!isRealCredentialVaultProvider(provider)) return 'scaffolded';
-  return refs.every(isNonScaffoldCredentialRef) ? 'ready' : 'scaffolded';
+  return refs.every(isNonScaffoldCredentialRef) && encrypted ? 'ready' : 'scaffolded';
 }
 
 function fingerprint(value: string) {
@@ -168,10 +173,12 @@ function buildCredentialSetupRecord(identity: CurrentUserIdentity, input: Creden
   const provider = process.env.MINIONMINT_CREDENTIAL_VAULT_PROVIDER?.trim() || null;
   const mode = credentialPersistenceMode();
   const normalizedValue = normalizeCredentialValue(input.credentialValue);
+  const submittedExternalRef = isEncryptedCredentialRef(normalizedValue);
   const generatedRef = vaultRefFor(mode, id);
-  const credentialRefs = Array.from(new Set([...(existing?.credentialRefs ?? []), generatedRef]));
-  const readiness = credentialReadinessFor(credentialRefs, provider ?? '');
-  const secretCiphertext = encryptForLocalVault(normalizedValue);
+  const credentialRefs = submittedExternalRef ? [normalizedValue] : Array.from(new Set([...(existing?.credentialRefs ?? []), generatedRef]));
+  const secretCiphertext = submittedExternalRef ? null : encryptForLocalVault(normalizedValue);
+  const encrypted = submittedExternalRef || Boolean(secretCiphertext);
+  const readiness = credentialReadinessFor(credentialRefs, provider ?? '', encrypted);
   return {
     id,
     ownerUserId: identity.userId,
@@ -184,7 +191,7 @@ function buildCredentialSetupRecord(identity: CurrentUserIdentity, input: Creden
     redactedValue: redactedValue(normalizedValue),
     secretCiphertext,
     valueFingerprint: fingerprint(normalizedValue),
-    encrypted: Boolean(secretCiphertext),
+    encrypted,
     readiness,
     createdAt: existing?.createdAt || now,
     updatedAt: now,
@@ -286,5 +293,5 @@ export async function saveCredentialSetupForUser(identity: CurrentUserIdentity, 
 }
 
 export function isCredentialSetupLaunchReady(setup: CredentialSetupRecord | null) {
-  return Boolean(setup && setup.readiness === 'ready' && setup.credentialRefs.every(isNonScaffoldCredentialRef));
+  return Boolean(setup && setup.readiness === 'ready' && setup.encrypted === true && setup.credentialRefs.every(isNonScaffoldCredentialRef));
 }
