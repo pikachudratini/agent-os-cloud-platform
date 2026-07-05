@@ -3,6 +3,7 @@ import path from 'node:path';
 import type { CurrentUserIdentity } from './current-user';
 import type { OnboardingPlan } from './onboarding';
 import { buildHermesConfigPreview, getProvisioningReadiness, type ComputerProviderName, type ProvisioningReadiness } from './provisioning';
+import { checkSelfHostedRuntimeStatus, emptySupervisorState, launchSelfHostedRuntime, stopSelfHostedRuntime, type RuntimeSupervisorState } from './runtime-supervisor';
 
 export type RuntimeAction = 'prepare_workspace' | 'generate_config' | 'launch_minion' | 'open_workspace' | 'stop_minion' | 'status_check';
 export type RuntimeStatus = 'blueprint_ready' | 'workspace_prepared' | 'config_generated' | 'launch_blocked' | 'running' | 'stopped';
@@ -23,13 +24,7 @@ export type HermesRuntimeConfigDraft = {
   generatedAt: string;
 };
 
-export type RuntimeProcessSupervisor = {
-  status: 'not_started' | 'launch_blocked' | 'running' | 'stopped';
-  launchCommand: string | null;
-  pid: number | null;
-  lastSignal: string | null;
-  updatedAt: string;
-};
+export type RuntimeProcessSupervisor = RuntimeSupervisorState;
 
 export type MinionRuntimeRecord = {
   id: string;
@@ -63,6 +58,7 @@ type RuntimePaths = {
   hermesConfigPath: string;
   credentialVaultPath: string;
   supervisorPath: string;
+  logPath: string;
 };
 
 const runtimeStorePath = path.join(process.cwd(), '.data', 'minion-runtimes.json');
@@ -85,11 +81,12 @@ function buildRuntimePaths(ownerUserId: string, minionId: string): RuntimePaths 
     hermesConfigPath: path.join(hermesProfilePath, 'config.json'),
     credentialVaultPath: path.join(workspaceRoot, 'credential-vault', 'refs.json'),
     supervisorPath: path.join(workspaceRoot, 'supervisor.json'),
+    logPath: path.join(workspaceRoot, 'logs', 'runtime.log'),
   };
 }
 
-function workspaceUrlFor(paths: RuntimePaths) {
-  return `file://${paths.workspaceRoot}`;
+function workspaceUrlFor(minionId: string) {
+  return `/minions/${encodeURIComponent(minionId)}`;
 }
 
 async function readRuntimeStore(): Promise<RuntimeStore> {
@@ -107,11 +104,10 @@ async function writeRuntimeStore(store: RuntimeStore) {
 }
 
 function processSupervisor(status: RuntimeProcessSupervisor['status'], now: string, existing?: RuntimeProcessSupervisor): RuntimeProcessSupervisor {
+  const base = existing ?? emptySupervisorState(now);
   return {
+    ...base,
     status,
-    launchCommand: existing?.launchCommand ?? null,
-    pid: existing?.pid ?? null,
-    lastSignal: existing?.lastSignal ?? null,
     updatedAt: now,
   };
 }
@@ -183,7 +179,7 @@ export function buildInitialRuntimeRecord(identity: CurrentUserIdentity, bluepri
     hermesProfilePath: paths?.hermesProfilePath ?? null,
     hermesConfigPath: paths?.hermesConfigPath ?? null,
     credentialVaultPath: paths?.credentialVaultPath ?? null,
-    workspaceUrl: paths ? workspaceUrlFor(paths) : null,
+    workspaceUrl: paths ? workspaceUrlFor(minionId) : null,
     processSupervisor: processSupervisor('not_started', now),
     logs: [
       `Runtime record created for ${blueprint.projectName}.`,
@@ -221,27 +217,46 @@ function renderHermesProfileConfig(runtime: MinionRuntimeRecord) {
   };
 }
 
+function pathsFromRuntime(runtime: MinionRuntimeRecord): RuntimePaths | null {
+  if (!runtime.workspaceRoot || !runtime.hermesProfilePath || !runtime.hermesConfigPath || !runtime.credentialVaultPath) return null;
+  return {
+    workspaceRoot: runtime.workspaceRoot,
+    hermesProfilePath: runtime.hermesProfilePath,
+    hermesConfigPath: runtime.hermesConfigPath,
+    credentialVaultPath: runtime.credentialVaultPath,
+    supervisorPath: path.join(runtime.workspaceRoot, 'supervisor.json'),
+    logPath: path.join(runtime.workspaceRoot, 'logs', 'runtime.log'),
+  };
+}
+
+function supervisorPathsFromRuntime(runtime: MinionRuntimeRecord) {
+  const paths = pathsFromRuntime(runtime);
+  if (!paths) return null;
+  return { ...paths, minionId: runtime.minionId };
+}
+
 async function writeSelfHostedRuntimeFiles(runtime: MinionRuntimeRecord): Promise<MinionRuntimeRecord> {
-  if (!runtime.workspaceRoot || !runtime.hermesProfilePath || !runtime.hermesConfigPath || !runtime.credentialVaultPath) return runtime;
+  const paths = pathsFromRuntime(runtime);
+  if (!paths) return runtime;
   const now = new Date().toISOString();
-  await mkdir(runtime.workspaceRoot, { recursive: true });
-  await mkdir(runtime.hermesProfilePath, { recursive: true });
-  await mkdir(path.dirname(runtime.credentialVaultPath), { recursive: true });
-  await writeFile(runtime.hermesConfigPath, JSON.stringify(renderHermesProfileConfig(runtime), null, 2));
-  await writeFile(runtime.credentialVaultPath, JSON.stringify({
+  await mkdir(runtime.workspaceRoot as string, { recursive: true });
+  await mkdir(runtime.hermesProfilePath as string, { recursive: true });
+  await mkdir(path.dirname(runtime.credentialVaultPath as string), { recursive: true });
+  await writeFile(runtime.hermesConfigPath as string, JSON.stringify(renderHermesProfileConfig(runtime), null, 2));
+  await writeFile(runtime.credentialVaultPath as string, JSON.stringify({
     provider: process.env.MINIONMINT_CREDENTIAL_VAULT_PROVIDER || 'scaffolded-local-refs',
     encrypted: false,
-    note: 'Scaffolded credential references only. Store encrypted credentials before enabling external actions.',
+    note: 'Scaffolded credential refs are not encrypted credentials. Configure a real credential vault before production launch.',
     refs: runtime.credentialVaultRefs,
     updatedAt: now,
   }, null, 2));
   const supervisor = processSupervisor(runtime.processSupervisor.status, now, runtime.processSupervisor);
-  await writeFile(path.join(runtime.workspaceRoot, 'supervisor.json'), JSON.stringify(supervisor, null, 2));
+  await writeFile(paths.supervisorPath, JSON.stringify(supervisor, null, 2));
   return {
     ...runtime,
     workspaceStatus: 'config_generated',
     processSupervisor: supervisor,
-    workspaceUrl: runtime.workspaceUrl || `file://${runtime.workspaceRoot}`,
+    workspaceUrl: runtime.workspaceUrl || workspaceUrlFor(runtime.minionId),
     logs: [...runtime.logs, `Prepared self-hosted workspace directory at ${runtime.workspaceRoot}.`, 'Generated real per-Minion Hermes profile and scaffolded credential vault refs.'],
     updatedAt: now,
   };
@@ -275,6 +290,20 @@ export async function getLatestRuntimeForUser(identity: CurrentUserIdentity): Pr
   return store.runtimes.filter((runtime) => runtime.ownerUserId === identity.userId).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0] ?? null;
 }
 
+export async function getRuntimeByMinionId(identity: CurrentUserIdentity, minionId: string): Promise<MinionRuntimeRecord | null> {
+  const store = await readRuntimeStore();
+  const runtime = store.runtimes.find((item) => item.ownerUserId === identity.userId && item.minionId === minionId) ?? null;
+  if (!runtime) return null;
+  const supervisorPaths = supervisorPathsFromRuntime(runtime);
+  if (!supervisorPaths) return runtime;
+  const supervisor = await checkSelfHostedRuntimeStatus(supervisorPaths);
+  return {
+    ...runtime,
+    processSupervisor: supervisor,
+    workspaceStatus: supervisor.status === 'running' ? 'running' : supervisor.status === 'launch_blocked' ? 'launch_blocked' : supervisor.status === 'stopped' || supervisor.status === 'exited' ? 'stopped' : runtime.workspaceStatus,
+  };
+}
+
 export async function applyRuntimeAction(identity: CurrentUserIdentity, action: RuntimeAction): Promise<MinionRuntimeRecord | null> {
   const store = await readRuntimeStore();
   const index = store.runtimes.findIndex((runtime) => runtime.ownerUserId === identity.userId);
@@ -289,27 +318,42 @@ export async function applyRuntimeAction(identity: CurrentUserIdentity, action: 
   }
 
   if (action === 'launch_minion') {
-    const launchCommand = process.env.MINIONMINT_SELF_HOSTED_LAUNCH_COMMAND?.trim();
-    if (!readiness.canProvisionRealMinion || !launchCommand) {
+    const supervisorPaths = supervisorPathsFromRuntime(next);
+    const usesScaffoldedCredentialRefs = next.credentialVaultRefs.some((ref) => ref.includes('pending') || ref.includes('scaffold'));
+    const devAllowsScaffoldedRefs = process.env.MINIONMINT_ALLOW_SCAFFOLDED_CREDENTIAL_REFS_FOR_DEV === 'true';
+    if (!readiness.canProvisionRealMinion || !supervisorPaths || (usesScaffoldedCredentialRefs && !devAllowsScaffoldedRefs)) {
       next.workspaceStatus = 'launch_blocked';
-      next.processSupervisor = processSupervisor('launch_blocked', now, { ...next.processSupervisor, launchCommand: launchCommand || null, lastSignal: 'launch_blocked' });
-      next.logs.push('Launch blocked until approval rails and workspace prerequisites are present, plus MINIONMINT_SELF_HOSTED_LAUNCH_COMMAND is configured.');
-      next.nextMissingImplementationStep = launchCommand ? nextStepFromReadiness(readiness) : 'Configure MINIONMINT_SELF_HOSTED_LAUNCH_COMMAND for the process supervisor.';
+      next.processSupervisor = processSupervisor('launch_blocked', now, { ...next.processSupervisor, lastSignal: 'launch_blocked' });
+      next.logs.push('Launch blocked until approval rails, workspace prerequisites, and credential vault prerequisites are present. Scaffolded credential refs are not encrypted credentials.');
+      next.nextMissingImplementationStep = usesScaffoldedCredentialRefs && !devAllowsScaffoldedRefs
+        ? 'Replace scaffolded credential refs with encrypted vault refs, or set MINIONMINT_ALLOW_SCAFFOLDED_CREDENTIAL_REFS_FOR_DEV=true for local supervisor testing only.'
+        : nextStepFromReadiness(readiness);
     } else {
-      next.workspaceStatus = 'running';
-      next.processSupervisor = processSupervisor('running', now, { ...next.processSupervisor, launchCommand, lastSignal: 'launch_requested' });
-      next.logs.push(`Process supervisor launch requested with command: ${launchCommand}`);
+      const supervisor = await launchSelfHostedRuntime(supervisorPaths);
+      next.processSupervisor = supervisor;
+      next.workspaceStatus = supervisor.status === 'running' ? 'running' : 'launch_blocked';
+      next.logs.push(supervisor.status === 'running' ? `Process supervisor started PID ${supervisor.pid}.` : 'Process supervisor launch blocked because no structured executable is configured.');
+      next.logs.push(...supervisor.recentLogLines.slice(-5));
+      next.nextMissingImplementationStep = supervisor.status === 'running' ? 'Open the Minion console and supervise runtime work.' : 'Configure MINIONMINT_SELF_HOSTED_EXECUTABLE and MINIONMINT_SELF_HOSTED_ARGS_JSON for the process supervisor.';
     }
   }
 
   if (action === 'stop_minion') {
-    next.workspaceStatus = 'stopped';
-    next.processSupervisor = processSupervisor('stopped', now, { ...next.processSupervisor, lastSignal: 'stop_requested' });
-    next.logs.push('Process supervisor stop requested.');
+    const supervisorPaths = supervisorPathsFromRuntime(next);
+    const supervisor = supervisorPaths ? await stopSelfHostedRuntime(supervisorPaths) : processSupervisor('stopped', now, { ...next.processSupervisor, lastSignal: 'stop_requested' });
+    next.workspaceStatus = supervisor.status === 'running' ? 'running' : 'stopped';
+    next.processSupervisor = supervisor;
+    next.logs.push(supervisor.status === 'running' ? 'Process supervisor stop requested, but the PID is still alive.' : `Process supervisor stopped PID ${supervisor.pid}.`);
+    next.logs.push(...supervisor.recentLogLines.slice(-5));
   }
 
   if (action === 'status_check') {
-    next.logs.push(`Status check: workspace is ${next.workspaceStatus}; supervisor is ${next.processSupervisor.status}.`);
+    const supervisorPaths = supervisorPathsFromRuntime(next);
+    const supervisor = supervisorPaths ? await checkSelfHostedRuntimeStatus(supervisorPaths) : next.processSupervisor;
+    next.processSupervisor = supervisor;
+    next.workspaceStatus = supervisor.status === 'running' ? 'running' : supervisor.status === 'launch_blocked' ? 'launch_blocked' : supervisor.status === 'stopped' || supervisor.status === 'exited' ? 'stopped' : next.workspaceStatus;
+    next.logs.push(`Status check: workspace is ${next.workspaceStatus}; supervisor is ${supervisor.status}; PID is ${supervisor.pid ?? 'not started'}.`);
+    next.logs.push(...supervisor.recentLogLines.slice(-5));
   }
 
   next.availableActions = actionsForStatus(next.workspaceStatus, readiness);

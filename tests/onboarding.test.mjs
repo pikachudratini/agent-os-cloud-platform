@@ -77,7 +77,8 @@ assert.match(provisioning, /E2B_API_KEY/);
 assert.match(provisioning, /BROWSERBASE_API_KEY/);
 assert.match(provisioning, /SCRAPYBARA_API_KEY/);
 assert.match(provisioning, /MINIONMINT_SELF_HOSTED_WORKSPACE_ROOT/);
-assert.match(provisioning, /MINIONMINT_SELF_HOSTED_LAUNCH_COMMAND/);
+assert.match(provisioning, /MINIONMINT_SELF_HOSTED_EXECUTABLE/);
+assert.match(provisioning, /MINIONMINT_SELF_HOSTED_ARGS_JSON/);
 assert.match(provisioning, /class SelfHostedComputerProvider/);
 assert.match(provisioning, /Self-hosted adapter can prepare/);
 assert.match(provisioning, /buildHermesConfigPreview/);
@@ -105,7 +106,7 @@ assert.match(runtime, /hermesConfigPath/);
 assert.match(runtime, /credentialVaultPath/);
 assert.match(runtime, /processSupervisor/);
 assert.match(runtime, /applyRuntimeAction/);
-assert.match(runtime, /file:\/\//);
+assert.match(runtime, /workspaceUrlFor/);
 assert.match(runtime, /Generated real per-Minion Hermes profile/);
 assert.match(runtime, /Launch blocked until approval rails and workspace prerequisites are present/);
 

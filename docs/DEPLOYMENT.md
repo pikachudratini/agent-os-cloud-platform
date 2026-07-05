@@ -14,12 +14,13 @@ Current app can:
 - run in production Phase 1 mode with Clerk, Postgres, and optional OpenAI,
 - create, refine, approve, save, and review Minion Blueprints,
 - preview planned identity surfaces for phone, email, payment, apps, credentials, workspace, knowledge vault, observability, and owner takeover,
-- report provider-neutral provisioning readiness through `/api/provisioning`.
+- report provider-neutral provisioning readiness through `/api/provisioning`,
+- run a first self-hosted runtime supervisor loop that creates workspace files, launches a configured local process, stores PID/status/log excerpts, stops the PID, and exposes a local Minion console route.
 
 Current app cannot yet:
 
-- create a real workspace through any provider adapter,
-- install or launch Hermes in that workspace,
+- create a real workspace through a managed provider adapter,
+- issue a production credential vault encrypted by user-owned setup,
 - create a live phone number or SMS/iMessage channel,
 - create a live email inbox,
 - issue a payment card,
@@ -131,23 +132,35 @@ Owned or self-hosted provider requirements:
 - Logging and observability.
 - Owner stop and takeover controls.
 
-Required implementation before this tier is genuinely live:
+Required implementation before this tier is genuinely production-live:
 
 1. Secure credential setup flow that writes encrypted credential references only.
-2. Provider adapters behind the `ComputerProvider` or `WorkspaceProvider` interface.
-3. Hermes template generation and launch code.
-4. Per-Minion Hermes config generated from the approved blueprint.
-5. Workspace status persistence.
-6. Dashboard launch/open workspace controls that are enabled only for connected providers.
-7. Audit logs for provisioning attempts, provider errors, launches, stops, and owner takeover.
+2. Managed provider adapters behind the `ComputerProvider` or `WorkspaceProvider` interface.
+3. Production Hermes launch packaging, health checks, and tenant isolation around the self-hosted supervisor.
+4. Workspace status persistence through Prisma when `DATABASE_URL` is configured.
+5. Audit logs for provisioning attempts, provider errors, launches, stops, and owner takeover.
+
+Self-hosted runtime supervisor environment:
+
+```bash
+MINIONMINT_COMPUTER_PROVIDER=self_hosted
+MINIONMINT_HERMES_TEMPLATE_REF=local-hermes-template
+MINIONMINT_CREDENTIAL_VAULT_PROVIDER=local-dev-vault
+MINIONMINT_SELF_HOSTED_WORKSPACE_ROOT=/tmp/minionmint-workspaces
+MINIONMINT_SELF_HOSTED_EXECUTABLE=node
+MINIONMINT_SELF_HOSTED_ARGS_JSON='["-e","setInterval(()=>console.log(\\"minion heartbeat\\"),1000)"]'
+MINIONMINT_ALLOW_SCAFFOLDED_CREDENTIAL_REFS_FOR_DEV=true # local testing only
+```
+
+`MINIONMINT_SELF_HOSTED_EXECUTABLE` plus `MINIONMINT_SELF_HOSTED_ARGS_JSON` are passed to `spawn` as structured argv with `shell: false`. Args may include `{profile}`, `{config}`, `{workspace}`, and `{minionId}` placeholders. Scaffolded credential refs are not encrypted credentials and must not be used as production proof.
 
 Current implementation:
 
 - `apps/web/app/lib/provisioning.ts` defines `ComputerProvider`, `WorkspaceProvider`, `HermesTemplateProvider`, `CredentialVaultProvider`, and `MinionRuntimeProvider` contracts.
 - Core methods include `checkReadiness`, `prepareWorkspace`, `launchWorkspace`, `stopWorkspace`, `getWorkspaceStatus`, `getAccessUrl`, `attachCredentials`, and `renderHermesConfig`.
-- `apps/web/app/api/provisioning/route.ts` exposes readiness and prepare endpoints.
+- `apps/web/app/api/provisioning/route.ts` exposes readiness, prepare, launch, status, and stop actions.
 - Dashboard displays the selected provider and blocks launch when provider-neutral requirements are missing.
-- Live provider calls are not implemented yet.
+- The self-hosted adapter can launch a configured local process, record PID/status/logs, and open `/minions/[minionId]` as a local console route.
 - Managed cloud-computer vendors are documented only as adapter categories, not as required foundations.
 
 ## Safety rules

@@ -81,3 +81,11 @@ Answered 2026-07-04: Clerk, Vercel plus managed Postgres, GPT-4o-mini or GPT-4.1
 - Added model-backed concierge service boundary with deterministic fallback.
 - Added blueprint edit, refine, approve, and save states before provisioning.
 - Expanded dashboard toward an operations-board preview with status, mission, first work order, knowledge, memory, approval queue, connected tools, next action, last activity, first-week win, and owner review state.
+
+### 2026-07-04 First self-hosted runtime supervisor slice
+
+- Added a self-hosted runtime supervisor module using structured `spawn` argv, not shell command strings.
+- Added per-Minion workspace, Hermes config, credential-ref, supervisor-state, and runtime-log files.
+- Added launch, status, and stop actions that operate on the real stored PID.
+- Added `/minions/[minionId]` as the local Minion console route with status, paths, logs, and owner takeover instructions.
+- Production credential-vault UI and Prisma runtime persistence remain next slices.

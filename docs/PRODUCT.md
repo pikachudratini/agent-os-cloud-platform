@@ -159,7 +159,7 @@ MinionMint should feel like a polished Minion minting desk and workspace platfor
 |---|---|---|
 | Phase 0 | Product doctrine and foundations | Source packet synthesis, repo, docs, ADRs, CI, QA loop, data model plan, and ledger approved. |
 | Phase 1 | Minion Blueprint onboarding | User can complete concierge setup, receive a saved Minion Blueprint, and return to a polished dashboard card. |
-| Phase 2 | Agent provisioning and virtual computers | User can provision one agent, attach knowledge, chat, and run a managed-provider computer proof if approved. |
+| Phase 2 | Self-hosted Minion runtime and provider adapters | User can prepare one Minion workspace, generate a Hermes profile, launch a supervised self-hosted process, stop it, inspect logs/status, and later choose optional managed-provider adapters. |
 | Phase 3 | Communication channels | Web chat is productionized. Email, SMS, and voice remain gated by compliance and approval mode. |
 | Phase 4 | Hardening and responsive QA | Security gates, tenant isolation tests, usage metering, responsive QA, and admin evidence are green. |
 

@@ -139,12 +139,13 @@ function getProviderReadinessChecks(provider: ComputerProviderName | null): Prov
   if (provider === 'self_hosted') {
     return checks.concat([
       readinessFromEnv('Self-hosted workspace root', 'MINIONMINT_SELF_HOSTED_WORKSPACE_ROOT'),
-      readinessFromEnv('Self-hosted process supervisor launch command', 'MINIONMINT_SELF_HOSTED_LAUNCH_COMMAND'),
+      readinessFromEnv('Self-hosted process supervisor executable', 'MINIONMINT_SELF_HOSTED_EXECUTABLE'),
+      readinessFromEnv('Self-hosted process supervisor args', 'MINIONMINT_SELF_HOSTED_ARGS_JSON', false),
       readinessFromEnv('Public access or console base URL', 'MINIONMINT_SELF_HOSTED_CONSOLE_BASE_URL', false),
       { label: 'Per-Minion workspace volume', required: true, status: hasEnv('MINIONMINT_SELF_HOSTED_WORKSPACE_ROOT') ? 'configured' as const : 'planned' as const },
       { label: 'Per-Minion Hermes profile config', required: true, status: hasEnv('MINIONMINT_HERMES_TEMPLATE_REF') ? 'configured' as const : 'planned' as const },
       { label: 'Secure credential storage', required: true, status: hasEnv('MINIONMINT_CREDENTIAL_VAULT_PROVIDER') ? 'configured' as const : 'planned' as const },
-      { label: 'Owner stop and takeover controls', required: true, status: hasEnv('MINIONMINT_SELF_HOSTED_LAUNCH_COMMAND') ? 'configured' as const : 'planned' as const },
+      { label: 'Owner stop and takeover controls', required: true, status: hasEnv('MINIONMINT_SELF_HOSTED_EXECUTABLE') ? 'configured' as const : 'planned' as const },
       { label: 'Logging and observability', required: false, status: 'planned' as const },
     ]);
   }
@@ -285,7 +286,7 @@ class SelfHostedComputerProvider implements ComputerProvider {
   }
 
   async launchWorkspace(minionId: string) {
-    return this.workspaceStatus(minionId, hasEnv('MINIONMINT_SELF_HOSTED_LAUNCH_COMMAND') ? 'configured' : 'planned', hasEnv('MINIONMINT_SELF_HOSTED_LAUNCH_COMMAND') ? 'Self-hosted launch command is configured for supervisor handoff.' : 'Set MINIONMINT_SELF_HOSTED_LAUNCH_COMMAND before launch.');
+    return this.workspaceStatus(minionId, hasEnv('MINIONMINT_SELF_HOSTED_EXECUTABLE') ? 'configured' : 'planned', hasEnv('MINIONMINT_SELF_HOSTED_EXECUTABLE') ? 'Self-hosted executable is configured for safe argv supervisor launch.' : 'Set MINIONMINT_SELF_HOSTED_EXECUTABLE before launch.');
   }
 
   async stopWorkspace(minionId: string) {

@@ -10,7 +10,7 @@ This is not intended to be a generic chatbot builder. The product starts with di
 
 **Phase 1 complete does not mean MinionMint can provision real Minions yet.**
 
-The current app is a Phase 1 blueprint scaffold and first runtime-preparation slice. It can generate, refine, approve, save, and review a Minion Blueprint. It can create a local Minion runtime record, generate a per-Minion Hermes config draft, and show staged dashboard actions for preparing, launching, opening, and stopping a workspace. It does **not** yet create a live workspace, install or launch Hermes inside that workspace, issue phone numbers, create email inboxes, issue payment cards, connect apps, or store user provider credentials through a production credential vault.
+The current app is a Phase 1 blueprint scaffold plus a first usable self-hosted runtime supervisor slice. It can generate, refine, approve, save, and review a Minion Blueprint. It can create a local Minion runtime record, generate a per-Minion Hermes config file, create an isolated workspace directory, launch a configured local supervisor process, track the real PID/status/log excerpts, stop that process, and open a local Minion console route. It does **not** yet issue phone numbers, create email inboxes, issue payment cards, connect apps, or store user provider credentials through a production credential vault.
 
 MinionMint is provider-neutral. The first provisioning bridge defines how a Minion Blueprint can become a launched Minion workspace. The cloud-computer provider is pluggable. Cloud-computer-style workspaces are a reference pattern, but no single managed provider is required.
 
@@ -134,8 +134,23 @@ Current provisioning status:
 
 - A provider-neutral interface exists in `apps/web/app/lib/provisioning.ts`.
 - `/api/provisioning` reports readiness and returns a clear not-configured response when provider-neutral requirements are missing.
-- Live provider calls are intentionally not implemented yet.
+- The self-hosted path can create local workspace files, generate a Hermes profile config, launch a real structured process with `child_process.spawn`, record PID/status/log evidence, stop the stored PID, and open `/minions/[minionId]` as a local console route.
 - Managed cloud-computer vendors remain optional adapters, not required dependencies.
+
+Self-hosted runtime supervisor environment:
+
+```bash
+MINIONMINT_COMPUTER_PROVIDER=self_hosted
+MINIONMINT_HERMES_TEMPLATE_REF=local-hermes-template
+MINIONMINT_CREDENTIAL_VAULT_PROVIDER=local-dev-vault
+MINIONMINT_SELF_HOSTED_WORKSPACE_ROOT=/tmp/minionmint-workspaces
+MINIONMINT_SELF_HOSTED_EXECUTABLE=node
+MINIONMINT_SELF_HOSTED_ARGS_JSON='["-e","setInterval(()=>console.log(\\"minion heartbeat\\"),1000)"]'
+# Local supervisor testing only when credential refs are still scaffolded:
+MINIONMINT_ALLOW_SCAFFOLDED_CREDENTIAL_REFS_FOR_DEV=true
+```
+
+`MINIONMINT_SELF_HOSTED_EXECUTABLE` and `MINIONMINT_SELF_HOSTED_ARGS_JSON` are used as structured argv, not a shell string. Supported placeholders inside args are `{profile}`, `{config}`, `{workspace}`, and `{minionId}`. Do not use the scaffolded credential-ref override in production.
 
 ## Commands
 
