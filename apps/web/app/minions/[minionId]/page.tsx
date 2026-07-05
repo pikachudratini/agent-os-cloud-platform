@@ -38,11 +38,16 @@ export default async function MinionConsolePage({ params }: { params: Promise<{ 
           <div className="status-strip">
             <span>Workspace: {label(runtime.workspaceStatus)}</span>
             <span>Supervisor: {label(supervisor.status)}</span>
+            <span>Health checked: {supervisor.lastHealthCheckAt || 'not checked'}</span>
+            <span>Restart count: {supervisor.restartCount ?? 0}</span>
             <span>PID: {supervisor.pid ?? 'not started'}</span>
             <span>Started: {supervisor.startedAt || 'not started'}</span>
             <span>Stopped: {supervisor.stoppedAt || 'not stopped'}</span>
           </div>
           <p><strong>Launch command:</strong> {supervisor.launchCommand || 'not configured'}</p>
+          <p><strong>Health check:</strong> {supervisor.healthCheckKind || 'pid'} {supervisor.healthCheckTarget ? `(${supervisor.healthCheckTarget})` : ''}</p>
+          <p><strong>Health failure reason:</strong> {supervisor.healthFailureReason || 'none'}</p>
+          <p><strong>Restart policy:</strong> {(supervisor.restartPolicy?.enabled ?? true) ? `enabled, max ${supervisor.restartPolicy?.maxRestarts ?? 3}` : 'disabled'}</p>
           <p><strong>Next action:</strong> {runtime.nextMissingImplementationStep}</p>
         </article>
 
@@ -53,12 +58,15 @@ export default async function MinionConsolePage({ params }: { params: Promise<{ 
           <p><strong>Hermes config path:</strong> {runtime.hermesConfigPath}</p>
           <p><strong>Credential vault refs path:</strong> {runtime.credentialVaultPath}</p>
           <p><strong>Runtime log path:</strong> {supervisor.logPath || 'not created yet'}</p>
+          <p><strong>Supervisor state path:</strong> {supervisor.supervisorPath || 'not created yet'}</p>
+          <p><strong>Runtime package path:</strong> {supervisor.runtimePackagePath || 'not created yet'}</p>
+          <p><strong>Credential refs:</strong> {runtime.credentialVaultRefs.join(', ') || 'not saved'}</p>
         </article>
 
         <article className="card stack wide-card">
           <h2>Owner takeover</h2>
           <p>Owner approval is required before this Minion can send, spend, submit, book, modify, or access sensitive accounts.</p>
-          <p>Use the dashboard controls to stop the Minion if status, logs, or behavior look wrong. The current stop action sends a safe termination signal to the stored PID and refreshes status.</p>
+          <p>Use the dashboard controls to stop or restart the Minion if status, health, logs, or behavior look wrong. Stop sends a safe termination signal to the stored PID. Restart stops the old PID, verifies it is dead, then launches a new process only when encrypted credential refs and a structured launch plan are present.</p>
           <div className="form-row action-row"><Link href="/dashboard" className="button">Open dashboard controls</Link></div>
         </article>
 

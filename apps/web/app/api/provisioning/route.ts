@@ -4,7 +4,7 @@ import { getMinionProvisioningProvider } from '../../lib/provisioning';
 import { applyRuntimeAction, prepareRuntimeForBlueprint, type RuntimeAction } from '../../lib/minion-runtime';
 import { getLatestWorkspaceForUser } from '../../lib/workspace-store';
 
-const runtimeActions = new Set<RuntimeAction>(['prepare_workspace', 'generate_config', 'launch_minion', 'open_workspace', 'stop_minion', 'status_check']);
+const runtimeActions = new Set<RuntimeAction>(['prepare_workspace', 'generate_config', 'launch_minion', 'open_workspace', 'restart_minion', 'stop_minion', 'status_check']);
 
 export async function GET() {
   const provider = getMinionProvisioningProvider();

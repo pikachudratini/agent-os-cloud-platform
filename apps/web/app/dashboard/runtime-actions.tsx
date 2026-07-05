@@ -14,6 +14,7 @@ const labels: Record<RuntimeAction, string> = {
   generate_config: 'Generate Hermes config',
   launch_minion: 'Launch Minion',
   open_workspace: 'Open workspace',
+  restart_minion: 'Restart Minion',
   stop_minion: 'Stop Minion',
   status_check: 'Check status',
 };
@@ -44,7 +45,7 @@ export function RuntimeActions({ actions, workspaceUrl, missingStep }: RuntimeAc
   return (
     <div className="runtime-actions">
       {actions.map((action) => {
-        if (action === 'prepare_workspace' || action === 'generate_config' || action === 'status_check' || action === 'launch_minion' || action === 'stop_minion') {
+        if (action === 'prepare_workspace' || action === 'generate_config' || action === 'status_check' || action === 'launch_minion' || action === 'restart_minion' || action === 'stop_minion') {
           return <button key={action} onClick={() => runRuntimeAction(action)} disabled={busy}>{labels[action]}</button>;
         }
         if (action === 'open_workspace') {

@@ -44,7 +44,7 @@ function jsonArray(value: unknown): string[] {
 }
 
 function jsonActionArray(value: unknown): RuntimeAction[] {
-  const allowed = new Set(['prepare_workspace', 'generate_config', 'launch_minion', 'open_workspace', 'stop_minion', 'status_check']);
+  const allowed = new Set(['prepare_workspace', 'generate_config', 'launch_minion', 'open_workspace', 'restart_minion', 'stop_minion', 'status_check']);
   return jsonArray(value).filter((item): item is RuntimeAction => allowed.has(item));
 }
 

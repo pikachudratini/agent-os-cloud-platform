@@ -20,6 +20,39 @@ assert.match(supervisor, /process\.kill\(state\.pid, 'SIGTERM'\)/, 'stop must si
 assert.match(runtime, /runtime\.log/, 'runtime must assign a per-Minion runtime log path');
 assert.match(supervisor, /recentLogLines/, 'supervisor must return recent log evidence');
 
+assert.match(supervisor, /SupervisorStatus = 'not_started' \| 'launch_blocked' \| 'starting' \| 'healthy' \| 'unhealthy' \| 'stopped' \| 'exited'/, 'supervisor must expose production health states');
+assert.match(supervisor, /healthCheckKind/, 'supervisor must persist health check kind');
+assert.match(supervisor, /lastHealthCheckAt/, 'supervisor must persist last health check timestamp');
+assert.match(supervisor, /healthFailureReason/, 'supervisor must persist health failure reason');
+assert.match(supervisor, /pidAlive/, 'supervisor must persist PID liveness separately from status labels');
+assert.match(supervisor, /MINIONMINT_SELF_HOSTED_HEALTH_URL/, 'supervisor must support configured HTTP health checks');
+assert.match(supervisor, /MINIONMINT_SELF_HOSTED_HEALTH_EXECUTABLE/, 'supervisor must support structured command health checks');
+assert.match(supervisor, /MINIONMINT_SELF_HOSTED_HEALTH_ARGS_JSON/, 'command health checks must use JSON argv');
+assert.match(supervisor, /spawnSync\(config\.executable[\s\S]*shell:\s*false/, 'command health checks must not execute shell strings');
+assert.match(supervisor, /restartSelfHostedRuntime/, 'supervisor must expose controlled restart');
+assert.match(supervisor, /restartCount/, 'restart state must persist restart count');
+assert.match(supervisor, /lastRestartAt/, 'restart state must persist last restart timestamp');
+assert.match(supervisor, /configuredRestartPolicy/, 'restart policy must be structured and persisted');
+assert.match(supervisor, /old PID is still alive/, 'restart must block when old PID cannot be stopped');
+assert.match(supervisor, /Missing structured launch plan/, 'restart and launch must block without launch plan');
+
+assert.match(runtime, /runtime-package\.json/, 'runtime must write a per-Minion runtime package contract');
+assert.match(runtime, /runtimePackageFor/, 'runtime package contract must be structured in minion-runtime');
+assert.match(runtime, /hermesProfilePath/, 'runtime package must include Hermes profile path');
+assert.match(runtime, /credentialVaultRefsPath/, 'runtime package must include credential vault refs path');
+assert.match(runtime, /supervisorStatePath/, 'runtime package must include supervisor state path');
+assert.match(runtime, /ownerTakeoverNotes/, 'runtime package must include owner takeover notes');
+assert.match(runtime, /restart_minion/, 'runtime must expose restart_minion action');
+assert.match(runtime, /restartSelfHostedRuntime\(/, 'restart_minion must call the supervisor restart path');
+assert.match(runtime, /encrypted owner credential setup/, 'restart must be blocked without encrypted owner credential setup');
+assert.match(runtime, /configuredLaunchPlan\(supervisorPaths\)/, 'restart must be blocked without a structured launch plan');
+assert.match(runtimeStore, /restart_minion/, 'runtime store must preserve restart_minion in available actions');
+assert.match(route, /Health checked/);
+assert.match(route, /Restart count/);
+assert.match(route, /Runtime package path/);
+assert.match(route, /Credential refs/);
+assert.match(route, /stop or restart the Minion/);
+
 assert.match(runtime, /launchSelfHostedRuntime\(/, 'launch_minion must call the supervisor');
 assert.match(runtime, /checkSelfHostedRuntimeStatus\(/, 'status_check must call the supervisor');
 assert.match(runtime, /stopSelfHostedRuntime\(/, 'stop_minion must call the supervisor');

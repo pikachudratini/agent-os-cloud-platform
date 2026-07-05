@@ -33,6 +33,7 @@ Evidence rule: never mark a task done without command output, screenshots, or ot
 | P1-008 | Source-material product doctrine pass | Phase 1 | P1-005 | review | Source packet synthesis updates PRODUCT, README, onboarding copy, dashboard copy, generated plan structure, visual language notes, and screenshots | `npm run qa` passed 2026-07-04. Runtime curl verified onboarding save and dashboard. Screenshots captured: `docs/qa-screenshots/minionmint-onboarding-375.png`, `docs/qa-screenshots/minionmint-onboarding-768.png`, `docs/qa-screenshots/minionmint-dashboard-1440.png`. | Blocks Phase 2 feature expansion until accepted. |
 | P1-007 | Prepare Vercel project for MinionMint.com | Phase 1 | P1-006 | blocked | Vercel project is prepared for MinionMint.com, exact DNS records are captured, Porkbun apex and www records are updated after Vercel provides them, and both https://minionmint.com and https://www.minionmint.com verify externally | Deployment plan added at docs/deployment/minionmint-vercel.md. Blocked before DNS because Vercel credentials are not configured. | Keep DNS pending until Vercel gives exact records. Do not call live until both hostnames verify. |
 | P1-009 | Phase 1 hardening approval | Phase 1 | P1-008 | review | Repo has doctrine guardrail, env contracts, Prisma/Postgres adapter boundary, Clerk identity boundary, model-backed concierge boundary, blueprint edit/refine/approve states, operations-board dashboard preview, refreshed screenshots, npm run qa, and CI | `npm run qa` passed locally and on VPS2 2026-07-04. Runtime POST `/api/onboarding` approved a blueprint with local fallback. Dashboard curl verified approval queue, connected tools, next action, and last activity sections. Screenshots captured in `docs/qa-screenshots/`, including `minionmint-hardening-onboarding-controls.png`. | Phase 2 remains paused until this production-real Phase 1 slice is accepted. |
+| P1-010 | Runtime packaging, health, and restart | Phase 1 | P1-009 | review | Self-hosted runtime writes a runtime package contract, health checks PID/HTTP/command without shell strings, restart stops old PID before new launch, and local plus Prisma proofs pass | In progress in current slice. | Production domain OAuth, production vault key management, production host hardening, and long-running Hermes Minion proof remain blocked. |
 
 ## Top Clarifying Questions For Approval
 
@@ -102,3 +103,10 @@ Answered 2026-07-04: Clerk, Vercel plus managed Postgres, GPT-4o-mini or GPT-4.1
 - Added the smallest owner credential setup loop for saving generated vault references through the dashboard without raw credential value fields.
 - Added CredentialSetup Prisma schema and local fallback storage for dev, including credential type, allowed-use notes, redacted display values, optional local ciphertext, and value fingerprints.
 - Runtime launch now reads owner credential setup readiness and keeps scaffolded refs blocked unless the explicit local-dev override is set.
+
+### 2026-07-05 Runtime packaging and health slice
+
+- Added a structured runtime package contract for self-hosted Minion workspaces.
+- Added PID, HTTP, and command health-check states without shell execution.
+- Added controlled restart policy and restart action that requires encrypted credential readiness and a structured launch plan.
+- Correct wording: self-hosted runtime packaging and health checks are locally and Prisma verified only after this slice passes. Production domain OAuth, production vault key management, production host hardening, and real long-running Hermes Minion operation still require deployment proof.

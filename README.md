@@ -134,7 +134,7 @@ Current provisioning status:
 
 - A provider-neutral interface exists in `apps/web/app/lib/provisioning.ts`.
 - `/api/provisioning` reports readiness and returns a clear not-configured response when provider-neutral requirements are missing.
-- The self-hosted path can create local workspace files, generate a Hermes profile config, launch a real structured process with `child_process.spawn`, record PID/status/log evidence, stop the stored PID, and open `/minions/[minionId]` as a local console route.
+- The self-hosted path can create local workspace files, generate a Hermes profile config, write a runtime package contract, launch a real structured process with `child_process.spawn`, record PID/health/log evidence, run PID/HTTP/command health checks without shell strings, restart by stopping the old PID before launching a new one, stop the stored PID, and open `/minions/[minionId]` as a local console route.
 - Minion runtime records persist through Prisma/Postgres when `DATABASE_URL` is configured and `MINIONMINT_FORCE_LOCAL_STORE` is not `true`. Local `.data/minion-runtimes.json` fallback remains available for dev and screenshot QA.
 - Owner credential setup persists generated `vault://local/...` or `vault://postgres/...` references through Prisma/Postgres when configured, with local `.data/credential-setups.json` fallback for dev. Submitted values are redacted in API/UI responses. Generated local/Postgres vault refs are launch-ready only when encrypted with `MINIONMINT_LOCAL_VAULT_KEY`; external encrypted manager refs such as `op://`, AWS Secrets Manager, or GCP Secret Manager references can be accepted as references without storing local raw values. Scaffolded, pending, or unencrypted refs remain launch-blocked unless the explicit local supervisor override is set.
 - Managed cloud-computer vendors remain optional adapters, not required dependencies.
@@ -148,11 +148,14 @@ MINIONMINT_CREDENTIAL_VAULT_PROVIDER=local-dev-vault
 MINIONMINT_SELF_HOSTED_WORKSPACE_ROOT=/tmp/minionmint-workspaces
 MINIONMINT_SELF_HOSTED_EXECUTABLE=node
 MINIONMINT_SELF_HOSTED_ARGS_JSON='["-e","setInterval(()=>console.log(\\"minion heartbeat\\"),1000)"]'
+MINIONMINT_SELF_HOSTED_HEALTH_EXECUTABLE=node # optional structured health check
+MINIONMINT_SELF_HOSTED_HEALTH_ARGS_JSON='["-e","process.exit(0)"]'
+MINIONMINT_SELF_HOSTED_MAX_RESTARTS=3
 # Local supervisor testing only when credential refs are still scaffolded:
 MINIONMINT_ALLOW_SCAFFOLDED_CREDENTIAL_REFS_FOR_DEV=true
 ```
 
-`MINIONMINT_SELF_HOSTED_EXECUTABLE` and `MINIONMINT_SELF_HOSTED_ARGS_JSON` are used as structured argv, not a shell string. Supported placeholders inside args are `{profile}`, `{config}`, `{workspace}`, and `{minionId}`. Do not use the scaffolded credential-ref override in production.
+`MINIONMINT_SELF_HOSTED_EXECUTABLE` and `MINIONMINT_SELF_HOSTED_ARGS_JSON` are used as structured argv, not a shell string. Supported placeholders inside args are `{profile}`, `{config}`, `{workspace}`, and `{minionId}`. Optional health checks use either `MINIONMINT_SELF_HOSTED_HEALTH_URL` or `MINIONMINT_SELF_HOSTED_HEALTH_EXECUTABLE` plus `MINIONMINT_SELF_HOSTED_HEALTH_ARGS_JSON`; command health checks also use structured argv with `shell: false`. The generated workspace includes `runtime-package.json`, `supervisor.json`, Hermes config, credential refs metadata, and runtime logs. Do not use the scaffolded credential-ref override in production.
 
 ## Commands
 

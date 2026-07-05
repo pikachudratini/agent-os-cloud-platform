@@ -62,6 +62,9 @@ export default async function DashboardPage() {
               <p><strong>Hermes config path:</strong> {runtime.hermesConfigPath || 'not generated'}</p>
               <p><strong>Credential vault path:</strong> {runtime.credentialVaultPath || 'not generated'}</p>
               <p><strong>Process supervisor:</strong> {runtime.processSupervisor.status}</p>
+              <p><strong>Supervisor health checked:</strong> {runtime.processSupervisor.lastHealthCheckAt || 'not checked'}</p>
+              <p><strong>Restart count:</strong> {runtime.processSupervisor.restartCount ?? 0}</p>
+              <p><strong>Runtime package path:</strong> {runtime.processSupervisor.runtimePackagePath || 'not generated'}</p>
               <p><strong>Credential vault refs:</strong> {runtime.credentialVaultRefs.join(', ')}</p>
               <RuntimeActions actions={runtime.availableActions} workspaceUrl={runtime.workspaceUrl} missingStep={runtime.nextMissingImplementationStep} />
               <details><summary>Runtime logs</summary><ul>{runtime.logs.map((entry, index) => <li key={`${index}-${entry}`}>{entry}</li>)}</ul></details>
