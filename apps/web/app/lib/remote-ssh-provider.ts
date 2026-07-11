@@ -161,7 +161,7 @@ function getDefaultHost(): SshHostConfig | null {
   };
 }
 
-function getAllHosts(): SshHostConfig[] {
+export function getAllHosts(): SshHostConfig[] {
   const fromEnvJson = parseHostConfigsFromEnv();
   if (fromEnvJson.length > 0) return fromEnvJson;
   const defaultHost = getDefaultHost();
@@ -172,7 +172,7 @@ function getHostById(hostId: string): SshHostConfig | null {
   return getAllHosts().find((h) => h.hostId === hostId) ?? null;
 }
 
-function selectHostForMinion(minionId: string): SshHostConfig | null {
+export function selectHostForMinion(minionId: string): SshHostConfig | null {
   const hosts = getAllHosts();
   if (hosts.length === 0) return null;
   if (hosts.length === 1) return hosts[0];
