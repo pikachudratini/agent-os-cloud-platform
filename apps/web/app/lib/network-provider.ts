@@ -520,3 +520,44 @@ export async function configureNetworkForMinion(identity: CurrentUserIdentity, m
 export async function getNetworkProviderForMinion(minionId: string): Promise<NetworkProviderState | null> {
   return readProvider(minionId);
 }
+
+// ---------------------------------------------------------------------------
+// Readiness summary for API and dashboard consumers
+// ---------------------------------------------------------------------------
+
+export type NetworkReadiness = {
+  networkType: string;
+  status: string;
+  proxyAddress: string | null;
+  proxyType: string;
+  isResidential: boolean;
+  leakProtectionConfigured: boolean;
+  readinessChecks: NetworkProviderReadinessCheck[];
+  canRoute: boolean;
+  message: string;
+};
+
+export function getNetworkReadiness(): NetworkReadiness {
+  const mode = defaultConnectionConfig().mode;
+  const checks = getNetworkReadinessChecks(mode);
+  const canRoute = isNetworkConfigured(mode);
+  const config = defaultConnectionConfig();
+  const isResidential = mode === 'socks5_proxy';
+  const proxyAddress = config.mode === 'socks5_proxy' && config.socks5.host
+    ? `socks5://${config.socks5.host}:${config.socks5.port}`
+    : null;
+  const leakProtection = Boolean(process.env.MINIONMINT_DISABLE_WEBRTC || process.env.MINIONMINT_VPN_KILL_SWITCH);
+  return {
+    networkType: mode,
+    status: canRoute ? 'configured' : 'not_configured',
+    proxyAddress,
+    proxyType: config.mode === 'socks5_proxy' ? 'socks5' : config.mode === 'wireguard_vpn' ? 'wireguard' : 'none',
+    isResidential,
+    leakProtectionConfigured: leakProtection,
+    readinessChecks: checks,
+    canRoute,
+    message: canRoute
+      ? `Network mode: ${mode}. ${proxyAddress ? 'Proxy configured.' : 'Direct or VPN connection.'}`
+      : `Network not ready. Missing: ${checks.filter((c) => c.required && c.status !== 'configured' && c.status !== 'connected').map((c) => c.label).join(', ')}`,
+  };
+}

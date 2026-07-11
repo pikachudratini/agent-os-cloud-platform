@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { RuntimeActions } from './runtime-actions';
 import { CredentialSetupPanel } from './credential-setup-panel';
+import { ComputerTypeSelector } from './computer-type-selector';
 import { getCurrentUserIdentity } from '../lib/current-user';
 import { getCredentialSetupsForUser } from '../lib/credential-store';
 import { getProvisioningReadiness } from '../lib/provisioning';
 import { buildInitialRuntimeRecord, getLatestRuntimeForUser } from '../lib/minion-runtime';
 import { getLatestWorkspaceForUser } from '../lib/workspace-store';
+import { getNetworkReadiness } from '../lib/network-provider';
 
 function statusLabel(value?: string) {
   return value?.replaceAll('_', ' ') ?? 'planned';
@@ -21,6 +23,7 @@ export default async function DashboardPage() {
   const ownerReviewState = plan?.ownerReviewState.replaceAll('_', ' ') ?? 'not started';
   const fallbackApps = ['Gmail', 'Slack', 'Calendar', 'Notion', 'CRM'];
   const provisioning = getProvisioningReadiness();
+  const networkReadiness = getNetworkReadiness();
   const runtime = savedRuntime || (plan ? buildInitialRuntimeRecord(identity, plan, plan.projectName, provisioning) : null);
 
   return (
@@ -32,6 +35,16 @@ export default async function DashboardPage() {
       </div>
       {plan ? (
         <div className="dashboard-layout operations-layout">
+          <ComputerTypeSelector />
+          <article className="card stack">
+            <span className="badge blue-badge">Network status</span>
+            <h2>Network route</h2>
+            <p><strong>Type:</strong> {networkReadiness.networkType}</p>
+            <p><strong>Proxy:</strong> {networkReadiness.proxyAddress ?? 'none'}</p>
+            <p><strong>Residential:</strong> {networkReadiness.isResidential ? 'Yes' : 'No'}</p>
+            <p><strong>Leak protection:</strong> {networkReadiness.leakProtectionConfigured ? 'Configured' : 'Not set'}</p>
+            <p><strong>Status:</strong> {networkReadiness.message}</p>
+          </article>
           <article className="card minion-command-card glow-card wide-card">
             <div className="panel-heading">
               <span className="badge blue-badge">Minion Blueprint</span>
