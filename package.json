@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "lint": "node scripts/validate-docs.mjs && npm run lint --workspaces --if-present",
-    "test": "node scripts/validate-ledger.mjs && node tests/onboarding.test.mjs && node tests/runtime-supervisor.test.mjs && node tests/schema.test.mjs",
+    "test": "node scripts/validate-ledger.mjs && node tests/onboarding.test.mjs && node tests/runtime-supervisor.test.mjs && node tests/schema.test.mjs && node tests/e2e-provisioning.test.mjs",
     "build": "npm run build --workspaces --if-present",
     "qa": "npm run lint && npm test && npm run build"
   },

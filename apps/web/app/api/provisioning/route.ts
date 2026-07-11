@@ -3,12 +3,42 @@ import { getCurrentUserIdentity } from '../../lib/current-user';
 import { getMinionProvisioningProvider } from '../../lib/provisioning';
 import { applyRuntimeAction, prepareRuntimeForBlueprint, type RuntimeAction } from '../../lib/minion-runtime';
 import { getLatestWorkspaceForUser } from '../../lib/workspace-store';
+import { getNetworkReadiness } from '../../lib/network-provider';
+import { verifyHermesReadiness, deployBrowserProfile } from '../../lib/hermes-installer';
 
 const runtimeActions = new Set<RuntimeAction>(['prepare_workspace', 'generate_config', 'launch_minion', 'open_workspace', 'restart_minion', 'stop_minion', 'status_check']);
 
-export async function GET() {
+export async function GET(request: Request) {
   const provider = getMinionProvisioningProvider();
-  return NextResponse.json(provider.checkReadiness());
+  const readiness = provider.checkReadiness();
+  const networkReadiness = getNetworkReadiness();
+
+  const { searchParams } = new URL(request.url);
+  const detail = searchParams.get('detail');
+
+  if (detail === 'network') {
+    return NextResponse.json(networkReadiness);
+  }
+
+  if (detail === 'hermes') {
+    const workspaceRoot = process.env.MINIONMINT_SELF_HOSTED_WORKSPACE_ROOT || process.cwd();
+    const hermesProfilePath = `${workspaceRoot}/hermes-profile`;
+    const hermesConfigPath = `${hermesProfilePath}/config.json`;
+    const hermesReadiness = await verifyHermesReadiness(workspaceRoot, hermesProfilePath, hermesConfigPath);
+    return NextResponse.json(hermesReadiness);
+  }
+
+  if (detail === 'browser_profile') {
+    const workspaceRoot = process.env.MINIONMINT_SELF_HOSTED_WORKSPACE_ROOT || process.cwd();
+    const proxyConfig = networkReadiness.proxyAddress;
+    const result = await deployBrowserProfile(workspaceRoot, 'test-minion', {
+      visibleDesktop: true,
+      residentialProxy: proxyConfig || undefined,
+    });
+    return NextResponse.json(result);
+  }
+
+  return NextResponse.json({ ...readiness, network: networkReadiness });
 }
 
 async function readAction(request: Request): Promise<RuntimeAction | null> {
