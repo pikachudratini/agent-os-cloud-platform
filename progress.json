@@ -1,0 +1,39 @@
+{
+  "project": "minionmint",
+  "status": "awaiting_accounts",
+  "updated_at": "2026-07-10T11:10:00-04:00",
+  "phase": "Phase 1 foundation complete; production deploy blocked on Andrew accounts",
+  "current_task": "Phase 1 blueprint + self-hosted runtime supervisor verified locally. Next: production deploy to minionmint.com once Vercel + Neon + Clerk accounts are connected.",
+  "completed_tasks": [
+    "Repo scaffolded at /root/agent-os-cloud-platform (remote: pikachudratini/agent-os-cloud-platform, head b928847)",
+    "Phase 1 product doctrine written (MinionMint = minting desk, not chatbot builder)",
+    "Minion Blueprint onboarding + review + approve flow built",
+    "Clerk auth shell with local fallback",
+    "Prisma/Postgres schema with local fallback",
+    "OpenAI concierge with deterministic fallback",
+    "Provider-neutral provisioning interface (ComputerProvider, WorkspaceProvider, HermesTemplateProvider, CredentialVaultProvider, MinionRuntimeProvider)",
+    "Self-hosted runtime supervisor: spawn, PID/HTTP/command health checks, restart by stop-then-launch, structured runtime package contract",
+    "Per-Minion Hermes config generation from approved blueprint",
+    "CredentialSetup Prisma schema + redacted dashboard display",
+    "Vercel project config (vercel.json) + deployment plan in docs/deployment/minionmint-vercel.md",
+    "npm run qa passes locally and on VPS2",
+    "CI on GitHub Actions passing"
+  ],
+  "artifacts": [
+    "/root/agent-os-cloud-platform",
+    "pikachudratini/agent-os-cloud-platform (remote, b928847)",
+    "docs/DEPLOYMENT.md",
+    "docs/LEDGER.md",
+    "docs/PRODUCT.md",
+    "vercel.json",
+    ".env.example"
+  ],
+  "verification": [
+    "npm run qa passes locally (lint + ledger + onboarding test + runtime supervisor test + schema test + build)",
+    "Runtime POST /api/onboarding approved a blueprint with local fallback",
+    "Dashboard curl verified approval queue, connected tools, next action, and last activity",
+    "Screenshots captured at 375, 768, 1440 widths"
+  ],
+  "blocker": "Awaiting Andrew: Vercel account, Neon Postgres URL, Clerk publishable+secret keys (all free tier)",
+  "next_action": "Andrew: create Vercel + Neon + Clerk accounts (45 min, $0). Then paste 4 env vars into Vercel and trigger deploy. Hermy will handle DNS, verification, and post-deploy work."
+}

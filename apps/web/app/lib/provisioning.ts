@@ -2,7 +2,7 @@ import type { OnboardingPlan } from './onboarding';
 
 export type ProvisioningSurfaceStatus = 'disabled' | 'planned' | 'configured' | 'connected';
 export type ProvisioningMode = 'local_demo' | 'production_phase_1' | 'provisioning_configured';
-export type ComputerProviderName = 'local_stub' | 'self_hosted' | 'e2b' | 'browserbase' | 'scrapybara' | 'daytona' | 'modal';
+export type ComputerProviderName = 'local_stub' | 'self_hosted' | 'remote_ssh' | 'e2b' | 'browserbase' | 'scrapybara' | 'daytona' | 'modal';
 
 export type ProviderReadinessCheck = {
   label: string;
@@ -89,6 +89,7 @@ export interface MinionRuntimeProvider {
 const providerLabels: Record<ComputerProviderName, string> = {
   local_stub: 'Local stub',
   self_hosted: 'Self-hosted pool',
+  remote_ssh: 'Remote SSH computer',
   e2b: 'E2B adapter',
   browserbase: 'Browserbase adapter',
   scrapybara: 'Scrapybara adapter',
@@ -135,6 +136,22 @@ function getProviderReadinessChecks(provider: ComputerProviderName | null): Prov
 
   if (hasEnv('MINIONMINT_WORKSPACE_REGION')) checks.push(readinessFromEnv('Workspace region', 'MINIONMINT_WORKSPACE_REGION', false));
   if (hasEnv('MINIONMINT_WORKSPACE_BASE_IMAGE')) checks.push(readinessFromEnv('Workspace base image', 'MINIONMINT_WORKSPACE_BASE_IMAGE', false));
+
+  if (provider === 'remote_ssh') {
+    return checks.concat([
+      readinessFromEnv('SSH host', 'MINIONMINT_SSH_HOST'),
+      readinessFromEnv('SSH username', 'MINIONMINT_SSH_USERNAME'),
+      { label: 'SSH authentication (password or private key)', required: true, status: (hasEnv('MINIONMINT_SSH_PASSWORD') || hasEnv('MINIONMINT_SSH_PRIVATE_KEY_PATH')) ? 'configured' as const : 'planned' as const },
+      readinessFromEnv('Workspace base path', 'MINIONMINT_SSH_WORKSPACE_BASE', false),
+      readinessFromEnv('Console base URL for workspace access', 'MINIONMINT_SSH_CONSOLE_BASE_URL', false),
+      readinessFromEnv('Network type (datacenter, residential, vpn)', 'MINIONMINT_NETWORK_TYPE', false),
+      { label: 'Hermes auto-install on remote machine', required: false, status: 'planned' as const },
+      { label: 'Browser profile deployment', required: false, status: 'planned' as const },
+      { label: 'Process supervisor via tmux', required: true, status: hasEnv('MINIONMINT_SSH_HOST') ? 'configured' as const : 'planned' as const },
+      { label: 'Owner stop and takeover controls', required: true, status: hasEnv('MINIONMINT_SSH_HOST') ? 'configured' as const : 'planned' as const },
+      { label: 'Logging and observability', required: false, status: 'planned' as const },
+    ]);
+  }
 
   if (provider === 'self_hosted') {
     return checks.concat([
@@ -316,11 +333,62 @@ class SelfHostedComputerProvider implements ComputerProvider {
   }
 }
 
+class RemoteSshComputerProvider implements ComputerProvider {
+  providerName: ComputerProviderName = 'remote_ssh';
+
+  checkReadiness() {
+    return getProviderReadinessChecks('remote_ssh');
+  }
+
+  async prepareWorkspace(blueprint: OnboardingPlan) {
+    const hasHost = Boolean(process.env.MINIONMINT_SSH_HOST?.trim());
+    return {
+      minionId: blueprint.agentSpec.name,
+      provider: this.providerName,
+      status: hasHost ? ('configured' as const) : ('planned' as const),
+      message: hasHost
+        ? 'Remote SSH provider can connect to the target machine, install Hermes, create workspace, and deploy browser profile.'
+        : 'Set MINIONMINT_SSH_HOST before preparing a remote SSH workspace.',
+    };
+  }
+
+  async launchWorkspace(minionId: string) {
+    return this.workspaceStatus(minionId, 'configured', 'Remote SSH launch: connect via SSH, install Hermes, deploy config, start tmux session.');
+  }
+
+  async stopWorkspace(minionId: string) {
+    return this.workspaceStatus(minionId, 'configured', 'Remote SSH stop: kill tmux session on the remote machine.');
+  }
+
+  async getWorkspaceStatus(minionId: string) {
+    return this.workspaceStatus(minionId, 'configured', 'Remote SSH status: check tmux session and Hermes health on the remote machine.');
+  }
+
+  async getAccessUrl(minionId: string) {
+    const baseUrl = process.env.MINIONMINT_SSH_CONSOLE_BASE_URL?.replace(/\/$/, '');
+    return baseUrl ? `${baseUrl}/${encodeURIComponent(minionId)}` : null;
+  }
+
+  async attachCredentials(minionId: string, credentialRefs: string[]) {
+    return this.workspaceStatus(minionId, credentialRefs.length > 0 ? 'configured' : 'planned', credentialRefs.length > 0 ? 'Credential references attached for remote SSH deployment.' : 'No credential references attached yet.');
+  }
+
+  private workspaceStatus(minionId: string, status: ProvisioningSurfaceStatus, message: string): WorkspaceStatus {
+    return {
+      minionId,
+      provider: this.providerName,
+      status,
+      message,
+    };
+  }
+}
+
 export class ProviderNeutralMinionRuntimeProvider {
   private computerProvider: ComputerProvider;
 
   constructor() {
-    this.computerProvider = getSelectedComputerProvider() === 'self_hosted' ? new SelfHostedComputerProvider() : new LocalStubComputerProvider();
+    const selected = getSelectedComputerProvider();
+    this.computerProvider = selected === 'self_hosted' ? new SelfHostedComputerProvider() : selected === 'remote_ssh' ? new RemoteSshComputerProvider() : new LocalStubComputerProvider();
   }
 
   checkReadiness() {
